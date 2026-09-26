@@ -164,23 +164,51 @@ describe("a degree plan", () => {
     expect(requirement(doc, "AACOM/foundations/structured").classList.contains("req-missing")).toBe(true);
   });
 
-  it("adds a course found by its name", async () => {
-    await post("/api/plan/courses", { code: "games, graphs and machines", term: "2027 S2" }, cookie);
-    const doc = await page("/", cookie);
-    expect(coursesIn(doc, "2027 S2")).toContain("MATH2301");
-    const id = doc.querySelector('section[aria-label="2027 S2"] [data-course="MATH2301"] input[name="id"]')?.getAttribute("value");
+  it("finds courses by name, degree courses first, each with its own Add", async () => {
+    const doc = await page("/?q=software", cookie);
+    const headings = [...doc.querySelectorAll("#results .results-heading")].map((h) => h.textContent);
+    expect(headings).toEqual(["In your degree", "Other courses"]);
+    const lists = doc.querySelectorAll("#results .result-list");
+    const row = lists[0].querySelector('[data-result="COMP2100"]');
+    expect(row?.textContent).toContain("Software Construction");
+    expect(row?.textContent).toContain("6u");
+    expect(row?.querySelector(".fit")?.textContent).toContain("Counts toward");
+    expect(row?.querySelector('form input[name="code"]')?.getAttribute("value")).toBe("COMP2100");
+    expect(row?.querySelector('form select[name="term"]')).toBeTruthy();
+    expect(lists[1].querySelector('[data-result="COMP6442"] .fit')?.textContent).toContain("general elective");
+  });
+
+  it("adds the result the student picked, to the semester they picked", async () => {
+    const doc = await page("/?q=games graphs", cookie);
+    const code = doc.querySelector('#results [data-result] input[name="code"]')?.getAttribute("value");
+    expect(code).toBe("MATH2301");
+    await post("/api/plan/courses", { code: code as string, term: "2027 S2" }, cookie);
+    const after = await page("/", cookie);
+    expect(coursesIn(after, "2027 S2")).toContain("MATH2301");
+    const id = after.querySelector('section[aria-label="2027 S2"] [data-course="MATH2301"] input[name="id"]')?.getAttribute("value");
     await post("/api/plan/courses/delete", { id: id as string }, cookie);
   });
 
-  it("lists the matches when a name fits several courses, and adds none", async () => {
-    const res = await post("/api/plan/courses", { code: "software", term: "2027 S2" }, cookie);
-    const location = res.headers.get("location") ?? "";
-    expect(location).toContain("q=software");
-    const doc = await page(location, cookie);
-    const results = doc.querySelector('[aria-label="Search results"]');
-    expect(results?.querySelector('[data-add="COMP2100"]')?.textContent).toContain("Software Construction");
-    expect(results?.textContent).toContain("6u");
-    expect(coursesIn(doc, "2027 S2")).not.toContain("COMP2100");
+  it("never adds free text, even when it names one course", async () => {
+    const res = await post("/api/plan/courses", { code: "games, graphs and machines", term: "2027 S2" }, cookie);
+    expect(res.headers.get("location")).toContain("error=");
+    expect(coursesIn(await page("/", cookie), "2027 S2")).not.toContain("MATH2301");
+  });
+
+  it("uses a known course's published units, whatever is typed", async () => {
+    await post("/api/plan/courses", { code: "COMP2300", term: "2029 S1", units: "24" }, cookie);
+    const doc = await page("/", cookie);
+    const course = doc.querySelector('section[aria-label="2029 S1"] [data-course="COMP2300"]');
+    expect(course?.querySelector(".units")?.textContent).toBe("6u");
+    await post("/api/plan/courses/delete", { id: course?.querySelector('input[name="id"]')?.getAttribute("value") as string }, cookie);
+  });
+
+  it("takes typed units only for a course it doesn't know", async () => {
+    await post("/api/plan/courses", { code: "ZZZZ1234", term: "2029 S1", units: "12" }, cookie);
+    const doc = await page("/", cookie);
+    const course = doc.querySelector('section[aria-label="2029 S1"] [data-course="ZZZZ1234"]');
+    expect(course?.querySelector(".units")?.textContent).toBe("12u");
+    await post("/api/plan/courses/delete", { id: course?.querySelector('input[name="id"]')?.getAttribute("value") as string }, cookie);
   });
 
   it("offers only first and second semesters", async () => {
@@ -215,6 +243,21 @@ describe("every degree on offer", () => {
       const plan = await page("/", await startPlan(code));
       expect(plan.querySelector(`[data-requirement="${code}/total"]`), code).toBeTruthy();
     }
+  });
+});
+
+describe("courses from an unchosen major", () => {
+  it("say they could count, not that they do, until the major is chosen", async () => {
+    const cookie = await startPlan("BCOMP");
+    const fit = async () => (await page("/?q=COMP3500", cookie)).querySelector('[data-result="COMP3500"] .fit')?.textContent;
+    expect(await fit()).toContain("Could count if you choose");
+
+    const doc = await page("/", cookie);
+    const option = [...doc.querySelectorAll('[data-requirement="BCOMP/core/computing"] option')]
+      .find((o) => o.getAttribute("value")?.endsWith("SOFT-MAJ"))
+      ?.getAttribute("value");
+    await post("/api/plan/choices", { choice: "BCOMP/core/computing", option: option as string }, cookie);
+    expect(await fit()).toContain("Counts toward");
   });
 });
 

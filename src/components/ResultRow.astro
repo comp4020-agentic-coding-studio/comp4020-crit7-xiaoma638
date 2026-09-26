@@ -1,0 +1,39 @@
+---
+// One search result with its own semester choice and Add button. Also rendered
+// once inside a <template>, which the page script clones for live results.
+interface Props {
+  code: string;
+  title: string;
+  units: number;
+  fitKind: string;
+  fitText: string;
+  terms: string[];
+  term: string;
+}
+const { code, title, units, fitKind, fitText, terms, term } = Astro.props;
+---
+
+<li class="result" data-result={code}>
+  <details class="result-detail">
+    <summary>
+      <strong data-f="code">{code}</strong>
+      <span data-f="title">{title}</span>
+      <span class="units" data-f="units">{units}u</span>
+    </summary>
+    <p class="result-more">
+      <span class="tag">Not checked</span> prerequisites, semester offerings and timetable clashes.
+      <a data-f="link" href={`https://programsandcourses.anu.edu.au/2027/course/${code}`} rel="external">Course page on P&C</a>
+    </p>
+  </details>
+  <div class={`fit fit-${fitKind}`} data-f="fit">{fitText}</div>
+  <form method="post" action="/api/plan/courses" class="result-add">
+    <input type="hidden" name="code" value={code} data-f="input" />
+    <label>
+      <span class="visually-hidden">Semester for {code}</span>
+      <select name="term">
+        {terms.map((t) => <option selected={t === term}>{t}</option>)}
+      </select>
+    </label>
+    <button>Add</button>
+  </form>
+</li>

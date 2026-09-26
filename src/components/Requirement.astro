@@ -55,7 +55,7 @@ const isPickList = r.kind === "courses" && r.measure === "units";
             const [code, times] = entry.split(" ");
             return (
               <li>
-                <a href={`/?add=${code}#add`} data-add={code} title={`${code} — add to plan`}>
+                <a href={`/?q=${code}#add`} data-add={code} title={`${code} — add to plan`}>
                   {titles.get(code) ?? code}
                 </a>
                 {times && <span class="muted"> {times}</span>}

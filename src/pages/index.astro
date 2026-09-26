@@ -1,6 +1,7 @@
 ---
 import DegreePicker from "../components/DegreePicker.astro";
 import Requirement from "../components/Requirement.astro";
+import ResultRow from "../components/ResultRow.astro";
 import Layout from "../layouts/Layout.astro";
 import {
   allCourses,
@@ -15,8 +16,8 @@ import {
   termsFor,
 } from "../lib/db";
 import { category, shortPath } from "../lib/format";
-import { audit, type RuleNode } from "../lib/rules";
-import { COURSE_CODE } from "../lib/seed";
+import { courseFits, describeFit } from "../lib/fit";
+import { audit } from "../lib/rules";
 import { currentPlan } from "../lib/session";
 
 const SESSION_ORDER = ["Summer", "S1", "Winter", "S2"];
@@ -32,7 +33,7 @@ const degree = plan && getDegree(plan.degreeCode);
 function build(plan: Plan, degree: Degree) {
   const tree = loadTree(degree.code);
   const planned = listPlanCourses(plan.id).sort((a, b) => byTerm(a.term, b.term) || a.id - b.id);
-  const { results, duplicates, countedBy } = audit(
+  const { results: audited, duplicates, countedBy } = audit(
     tree,
     planned.map((c) => ({ key: String(c.id), code: c.courseCode, units: c.units })),
     getChoices(plan.id),
@@ -48,37 +49,28 @@ function build(plan: Plan, degree: Degree) {
   const used = new Set(planned.map((c) => c.term));
   const shown = [...new Set([...regular, ...used])].sort(byTerm);
 
-  // where each course is named in this degree's rules, for search results
-  const listedIn = new Map<string, string>();
-  const walk = (nodes: RuleNode[], path: string[]) => {
-    for (const n of nodes) {
-      const wrapper = path.length === 0 && n.kind === "group" && n.minUnits !== undefined;
-      const here = wrapper ? path : [...path, n.label];
-      if (n.kind === "courses") {
-        for (const c of n.courses) if (!listedIn.has(c.code)) listedIn.set(c.code, shortPath(here));
-      }
-      if (n.kind === "group") walk(n.children, here);
-      if (n.kind === "choice") walk(n.options, here);
-    }
-  };
-  walk(tree, []);
-  const catalogue = allCourses().map((c) => ({ ...c, listed: listedIn.get(c.code) }));
+  const choices = getChoices(plan.id);
+  const fits = courseFits(tree, choices);
+  const catalogue = allCourses().map((c) => {
+    const fit = fits.get(c.code);
+    return { ...c, fitKind: fit?.kind ?? "other", fitText: describeFit(fit, degree.code) };
+  });
   const titles = new Map(catalogue.map((c) => [c.code, c.title]));
   const query = Astro.url.searchParams.get("q")?.trim() ?? "";
-  const matches = query
-    ? searchCourses(query)
-        .map((c) => ({ ...c, listed: listedIn.get(c.code) }))
-        .sort((a, b) => Number(!a.listed) - Number(!b.listed))
-        .slice(0, 12)
-    : [];
+  const hits = query ? new Set(searchCourses(query).map((c) => c.code)) : new Set<string>();
+  const found = catalogue.filter((c) => hits.has(c.code));
+  const results = {
+    inDegree: found.filter((c) => c.fitKind !== "other").sort((a, b) => Number(a.fitKind !== "counts") - Number(b.fitKind !== "counts")).slice(0, 10),
+    other: found.filter((c) => c.fitKind === "other").slice(0, 6),
+  };
 
   // upper limits aren't goals: respecting one achieves nothing, breaking one is a problem
-  const completion = results.filter((r) => category(r) === "completion");
+  const completion = audited.filter((r) => category(r) === "completion");
   const groups = {
     missing: completion.filter((r) => r.status !== "met"),
     met: completion.filter((r) => r.status === "met"),
-    limits: results.filter((r) => category(r) === "limit"),
-    manual: results.filter((r) => category(r) === "manual"),
+    limits: audited.filter((r) => category(r) === "limit"),
+    manual: audited.filter((r) => category(r) === "manual"),
   };
   const met = groups.met.length;
   const broken = groups.limits.filter((r) => r.status === "unmet").length;
@@ -86,7 +78,6 @@ function build(plan: Plan, degree: Degree) {
 
   const askedTerm = Astro.url.searchParams.get("term");
   const nextTerm = (askedTerm && terms.includes(askedTerm) ? askedTerm : undefined) ?? shown.find((t) => planned.filter((c) => c.term === t).reduce((n, c) => n + c.units, 0) < 24) ?? shown[0];
-  const prefill = Astro.url.searchParams.get("add")?.toUpperCase() ?? "";
   return {
     groups,
     terms,
@@ -100,14 +91,13 @@ function build(plan: Plan, degree: Degree) {
     titles,
     catalogue,
     query,
-    matches,
+    results,
     met,
     total: completion.length,
     broken,
     units,
     complete: groups.missing.length === 0 && broken === 0,
     nextTerm,
-    prefill: COURSE_CODE.test(prefill) ? prefill : "",
   };
 }
 const view = plan && degree ? build(plan, degree) : undefined;
@@ -180,62 +170,83 @@ const rulesYear = degrees[0]?.year;
           <div class="plan-main">
             <section class="add" id="add" aria-labelledby="add-heading">
               <h2 id="add-heading">Add a course</h2>
-              <form method="post" action="/api/plan/courses" class="add-form">
-                <label class="course-field">
-                  Course
-                  <input
-                    name="code"
-                    required
-                    placeholder="Code or name, e.g. COMP2100 or algorithms"
-                    value={view.prefill || view.query}
-                    autocomplete="off"
-                    aria-describedby="checks"
-                    aria-controls="suggest"
-                    autofocus={view.prefill !== "" || undefined}
-                  />
-                </label>
-                <label>
-                  Semester
-                  <select name="term">
-                    {view.terms.map((t) => (
-                      <option selected={t === view.nextTerm}>{t}</option>
-                    ))}
-                  </select>
-                </label>
-                <label class="units-field">
-                  Units
-                  <input name="units" inputmode="numeric" placeholder="auto" title="Leave blank to use the course's published units" />
-                </label>
-                <button>Add</button>
+              <form method="get" action="/#add" class="search" role="search">
+                <label for="q" class="visually-hidden">Search courses by code or name</label>
+                <input
+                  id="q"
+                  name="q"
+                  type="search"
+                  value={view.query}
+                  placeholder="Search by code or name, e.g. COMP3600 or algorithms"
+                  autocomplete="off"
+                  aria-controls="results"
+                  aria-describedby="checks"
+                />
+                <input type="hidden" name="term" value={view.nextTerm} />
+                <button class="secondary">Search</button>
               </form>
-              <ul id="suggest" class="suggest" hidden />
-              {view.query && (
-                <div class="matches" role="region" aria-label="Search results">
-                  <p>
-                    {view.matches.length} courses match “{view.query}” — pick one, then Add:
-                  </p>
-                  <ul class="suggest">
-                    {view.matches.map((c) => (
-                      <li>
-                        <a href={`/?add=${c.code}#add`} data-add={c.code}>
-                          <strong>{c.code}</strong> {c.title}
-                        </a>
-                        <span class="muted">
-                          {c.units}u{c.listed ? ` · ${c.listed}` : ""}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <div id="results" class="results" aria-live="polite">
+                {view.query &&
+                  (view.results.inDegree.length + view.results.other.length === 0 ? (
+                    <p class="no-results">No course matches “{view.query}”. If it's a real ANU course, add it by code below.</p>
+                  ) : (
+                    <>
+                      {view.results.inDegree.length > 0 && (
+                        <>
+                          <h3 class="results-heading">In your degree</h3>
+                          <ul class="result-list">
+                            {view.results.inDegree.map((c) => (
+                              <ResultRow {...c} terms={view.terms} term={view.nextTerm} />
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                      {view.results.other.length > 0 && (
+                        <>
+                          <h3 class="results-heading">Other courses</h3>
+                          <ul class="result-list">
+                            {view.results.other.map((c) => (
+                              <ResultRow {...c} terms={view.terms} term={view.nextTerm} />
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </>
+                  ))}
+              </div>
+              <details class="custom">
+                <summary>Course not listed? Add it by code</summary>
+                <form method="post" action="/api/plan/courses" class="custom-form">
+                  <label>
+                    Code
+                    <input name="code" required pattern="[A-Za-z]{4}\s*[0-9]{4}" placeholder="ECON1101" autocomplete="off" />
+                  </label>
+                  <label>
+                    Semester
+                    <select name="term">
+                      {view.terms.map((t) => (
+                        <option selected={t === view.nextTerm}>{t}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Units
+                    <input name="units" inputmode="numeric" value="6" size="3" />
+                  </label>
+                  <button class="secondary">Add</button>
+                </form>
+              </details>
               <p class="checks" id="checks">
                 <span class="tag">Not checked</span> semester offerings, prerequisites and timetable clashes. Confirm them on
                 Programs and Courses and the ANU timetable before you enrol.
               </p>
+              <template id="result-template">
+                <ResultRow code="CODE0000" title="" units={0} fitKind="other" fitText="" terms={view.terms} term={view.nextTerm} />
+              </template>
               <script
                 type="application/json"
                 id="catalogue"
-                set:html={JSON.stringify(view.catalogue.map((c) => [c.code, c.title, c.units, c.listed ?? ""])).replace(/</g, "\\u003c")}
+                set:html={JSON.stringify(view.catalogue.map((c) => [c.code, c.title, c.units, c.fitKind, c.fitText])).replace(/</g, "\\u003c")}
               />
             </section>
 
@@ -386,58 +397,97 @@ const rulesYear = degrees[0]?.year;
     move.querySelector("button")?.classList.add("js-hidden");
   }
 
-  // Picking a suggested course fills the add form in place instead of navigating.
-  const form = document.querySelector<HTMLElement>("#add");
-  const input = form?.querySelector<HTMLInputElement>('input[name="code"]');
-  document.addEventListener("click", (event) => {
-    const link = (event.target as Element).closest<HTMLAnchorElement>("a[data-add]");
-    if (!link || !form || !input) return;
-    event.preventDefault();
-    input.value = link.dataset.add ?? "";
-    input.focus({ preventScroll: true });
-    // on a phone the add panel isn't pinned, so bring it into view
-    const box = form.getBoundingClientRect();
-    if (box.top < 0 || box.bottom > window.innerHeight) form.scrollIntoView({ behavior: "smooth", block: "start" });
-    form.classList.remove("flash");
-    void form.offsetWidth;
-    form.classList.add("flash");
-  });
+  // Live search over the course catalogue embedded in the page; rows are clones
+  // of the server-rendered template, so they post exactly like server results.
+  const addPanel = document.querySelector<HTMLElement>("#add");
+  const search = document.querySelector<HTMLInputElement>("#q");
+  const resultsEl = document.querySelector<HTMLElement>("#results");
+  const template = document.querySelector<HTMLTemplateElement>("#result-template");
+  type Entry = [code: string, title: string, units: number, fitKind: string, fitText: string];
+  const catalogue: Entry[] = JSON.parse(document.querySelector("#catalogue")?.textContent ?? "[]");
+  let defaultTerm = document.querySelector<HTMLInputElement>('.search input[name="term"]')?.value ?? "";
 
-  // Live suggestions from the course catalogue embedded in the page.
-  const suggest = document.querySelector<HTMLUListElement>("#suggest");
-  const catalogueEl = document.querySelector("#catalogue");
-  type Entry = [code: string, title: string, units: number, listed: string];
-  const catalogue: Entry[] = catalogueEl ? JSON.parse(catalogueEl.textContent ?? "[]") : [];
-  const render = () => {
-    if (!input || !suggest) return;
-    const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
-    const exact = catalogue.some(([code]) => code === input.value.trim().toUpperCase());
-    const hits = words.length && !exact
-      ? catalogue
-          .filter(([code, title]) => words.every((w) => `${code} ${title}`.toLowerCase().includes(w)))
-          .sort((a, b) => Number(!a[3]) - Number(!b[3]))
-          .slice(0, 8)
-      : [];
-    suggest.replaceChildren(
-      ...hits.map(([code, title, units, listed]) => {
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = `/?add=${code}#add`;
-        a.dataset.add = code;
-        const strong = document.createElement("strong");
-        strong.textContent = code;
-        a.append(strong, ` ${title}`);
-        const meta = document.createElement("span");
-        meta.className = "muted";
-        meta.textContent = `${units}u${listed ? ` · ${listed}` : ""}`;
-        li.append(a, meta);
-        return li;
-      }),
-    );
-    suggest.hidden = hits.length === 0;
+  const row = ([code, title, units, fitKind, fitText]: Entry) => {
+    const li = template?.content.firstElementChild?.cloneNode(true) as HTMLElement;
+    const set = (f: string, text: string) => {
+      const el = li.querySelector<HTMLElement>(`[data-f="${f}"]`);
+      if (el) el.textContent = text;
+    };
+    li.dataset.result = code;
+    set("code", code);
+    set("title", title);
+    set("units", `${units}u`);
+    set("fit", fitText);
+    li.querySelector('[data-f="fit"]')!.className = `fit fit-${fitKind}`;
+    li.querySelector<HTMLInputElement>('[data-f="input"]')!.value = code;
+    li.querySelector<HTMLAnchorElement>('[data-f="link"]')!.href = `https://programsandcourses.anu.edu.au/2027/course/${code}`;
+    const select = li.querySelector("select");
+    if (select) select.value = defaultTerm;
+    return li;
   };
-  input?.addEventListener("input", render);
+
+  const group = (heading: string, entries: Entry[]) => {
+    if (!entries.length) return [];
+    const h = document.createElement("h3");
+    h.className = "results-heading";
+    h.textContent = heading;
+    const ul = document.createElement("ul");
+    ul.className = "result-list";
+    ul.append(...entries.map(row));
+    return [h, ul];
+  };
+
+  const render = () => {
+    if (!search || !resultsEl) return;
+    const words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      resultsEl.replaceChildren();
+      return;
+    }
+    const hits = catalogue.filter(([code, title]) => words.every((w) => `${code} ${title}`.toLowerCase().includes(w)));
+    const inDegree = hits.filter((e) => e[3] !== "other").sort((a, b) => Number(a[3] !== "counts") - Number(b[3] !== "counts"));
+    const other = hits.filter((e) => e[3] === "other");
+    if (!hits.length) {
+      const p = document.createElement("p");
+      p.className = "no-results";
+      p.textContent = `No course matches “${search.value.trim()}”. If it's a real ANU course, add it by code below.`;
+      resultsEl.replaceChildren(p);
+      return;
+    }
+    resultsEl.replaceChildren(...group("In your degree", inDegree.slice(0, 8)), ...group("Other courses", other.slice(0, 5)));
+  };
+  search?.addEventListener("input", render);
+
+  const focusSearch = (text?: string) => {
+    if (!search || !addPanel) return;
+    if (text !== undefined) {
+      search.value = text;
+      render();
+    }
+    search.focus({ preventScroll: true });
+    const box = addPanel.getBoundingClientRect();
+    if (box.top < 0 || box.bottom > window.innerHeight) addPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    addPanel.classList.remove("flash");
+    void addPanel.offsetWidth;
+    addPanel.classList.add("flash");
+  };
+
+  // a suggested course (audit, next steps) opens its search result in place
   document.addEventListener("click", (event) => {
-    if ((event.target as Element).closest("a[data-add]") && suggest) suggest.hidden = true;
+    const target = event.target as Element;
+    const suggestion = target.closest<HTMLAnchorElement>("a[data-add]");
+    if (suggestion) {
+      event.preventDefault();
+      focusSearch(suggestion.dataset.add ?? "");
+      return;
+    }
+    // "+ Add a course" on a semester card: search, adding to that semester
+    const termLink = target.closest<HTMLAnchorElement>("a[data-term]");
+    if (termLink) {
+      event.preventDefault();
+      defaultTerm = termLink.dataset.term ?? defaultTerm;
+      for (const select of document.querySelectorAll<HTMLSelectElement>(".result-add select, .custom-form select")) select.value = defaultTerm;
+      focusSearch();
+    }
   });
 </script>
