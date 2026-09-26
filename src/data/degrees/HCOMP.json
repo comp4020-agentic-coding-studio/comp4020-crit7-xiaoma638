@@ -1,0 +1,60 @@
+{
+  "code": "HCOMP",
+  "name": "Bachelor of Computing (Honours)",
+  "year": 2027,
+  "totalUnits": 48,
+  "durationYears": 1,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/program/HCOMP",
+  "notes": [
+    "COMP4550 must be completed twice in consecutive semesters; the consecutive-semester rule is not checked.",
+    "COMP4550 is also excluded from the 18-unit 4000-level pool so the two project enrolments are not counted there (the page only names COMP4500 and COMP4820 as excluded project courses).",
+    "The honours mark (HONS4700 Final Honours Grade: sum of mark x units / sum of units, NCN and WN counting as zero) is not calculated here.",
+    "Admission: an AQF Level 7 bachelor degree in a cognate discipline (Advanced Computing, Computer Science, Computing, Information Systems, Information Technology) completed within the last two years, with a weighted average equivalent to ANU 70% over the best 36 units of non-1000-level cognate courses; subject to supervisory capacity."
+  ],
+  "courses": {
+    "COMP4450": {
+      "title": "Computing Research Methods",
+      "units": 6
+    },
+    "COMP4550": {
+      "title": "Computing Research Project",
+      "units": 12
+    }
+  },
+  "requirements": [
+    {
+      "id": "compulsory",
+      "kind": "courses",
+      "label": "Compulsory courses (COMP4550 in two consecutive semesters, 12+12)",
+      "courses": [
+        "COMP4450",
+        {
+          "code": "COMP4550",
+          "times": 2
+        }
+      ]
+    },
+    {
+      "id": "comp-4000",
+      "kind": "pool",
+      "label": "18 units of further 4000-level COMP courses, excluding project courses",
+      "subjects": [
+        "COMP"
+      ],
+      "levelMin": 4000,
+      "levelMax": 4000,
+      "exclude": [
+        "COMP4500",
+        "COMP4820",
+        "COMP4550"
+      ],
+      "minUnits": 18
+    },
+    {
+      "id": "total",
+      "kind": "total",
+      "label": "Total units",
+      "minUnits": 48
+    }
+  ]
+}

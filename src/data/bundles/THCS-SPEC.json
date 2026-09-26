@@ -1,0 +1,81 @@
+{
+  "code": "THCS-SPEC",
+  "name": "Theoretical Computer Science",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/THCS-SPEC",
+  "notes": [
+    "Only available to students studying Bachelor of Advanced Computing (AACOM) and Bachelor of Advanced Computing Research & Development (AACRD).",
+    "MATH4343 requires a permission code from the course convener.",
+    "COMP4011 Advanced Topics in Formal Methods and Programming Languages is a special topics course; the topic varies by offering.",
+    "COMP3630 is also compulsory in AACOM; since a course is never counted twice, AACOM students cannot count it towards this specialisation.",
+    "COMP4712 sits in the page's lower 'maximum of 12 units' list even though it is 4000-level, so it counts towards the 4000-level minimum but not towards the 12 units required from the first list."
+  ],
+  "courses": {
+    "COMP2620": {
+      "title": "Logic",
+      "units": 6
+    },
+    "COMP3610": {
+      "title": "Principles of Programming Languages",
+      "units": 6
+    },
+    "COMP3630": {
+      "title": "Theory of Computation",
+      "units": 6
+    },
+    "COMP4011": {
+      "title": "Advanced Topics in Formal Methods and Programming Languages",
+      "units": 6
+    },
+    "COMP4600": {
+      "title": "Advanced Algorithms",
+      "units": 6
+    },
+    "COMP4712": {
+      "title": "Compiler Construction",
+      "units": 6
+    },
+    "MATH4343": {
+      "title": "Foundations of Mathematics",
+      "units": 6
+    }
+  },
+  "requirements": [
+    {
+      "id": "advanced",
+      "kind": "courses",
+      "label": "At least 12 units from the 4000-level list",
+      "courses": [
+        "COMP4011",
+        "COMP4600",
+        "MATH4343"
+      ],
+      "minUnits": 12
+    },
+    {
+      "id": "rest",
+      "kind": "courses",
+      "label": "Remaining 12 units from either list (at most 12 from the lower-level list)",
+      "note": "The page's 'maximum of 12 units' from this list is implied: with at least 12 units required from the 4000-level list, at most 12 units of the 24 can come from here.",
+      "courses": [
+        "COMP2620",
+        "COMP3610",
+        "COMP3630",
+        "COMP4712",
+        "COMP4011",
+        "COMP4600",
+        "MATH4343"
+      ],
+      "minUnits": 12
+    },
+    {
+      "id": "level-4000",
+      "kind": "constraint",
+      "label": "At least 12 units of 4000-level courses",
+      "scope": "parent",
+      "levelMin": 4000,
+      "levelMax": 4000,
+      "minUnits": 12
+    }
+  ]
+}

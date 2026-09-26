@@ -1,0 +1,38 @@
+{
+  "code": "6706XGDCP",
+  "name": "Graduate Diploma of Computing",
+  "year": 2027,
+  "totalUnits": 48,
+  "durationYears": 1,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/program/6706XGDCP",
+  "notes": [
+    "The formal Program Requirements say the 24 further units must be 6000- and 8000-level COMP courses, but the Electives advice says 'All electives should be 6000, 7000, or 8000-level COMP courses'. The formal rule is followed here: 7000-level COMP does not count.",
+    "The Program Requirements block gives no unit values per course; units are taken from the Study Options enrolment pattern (6 units each), and COMP8260's 6 units from the course list shown on the MMLCV page.",
+    "The Admission Pathways section calls COMP6710 'Introduction to Software Systems' and COMP6250 'Professional Practice 1'; the Program Requirements titles are used here.",
+    "Recommended electives (advice only): COMP6120, COMP6240, COMP6260, COMP6261, COMP6262, COMP6300, COMP6390, COMP6466, COMP6670. Students planning to continue into the Master of Computing (MCOMP) should complete COMP6120 and pick electives relevant to their intended MCOMP specialisation.",
+    "Course credit is not available in this program. Exemptions (e.g. COMP6710, MATH6005, COMP6250) carry no unit value, so an exempted course must be replaced by another course."
+  ],
+  "courses": {
+    "COMP6442": { "title": "Software Construction", "units": 6 },
+    "COMP6710": { "title": "Structured Programming", "units": 6 },
+    "MATH6005": { "title": "Discrete Mathematical Models", "units": 6 },
+    "COMP6250": { "title": "Professional Practice: Holistic Thinking and Communication", "units": 6 },
+    "COMP8260": { "title": "Professional Practice: Responsible Innovation and Leadership", "units": 6 }
+  },
+  "requirements": [
+    { "id": "compulsory", "kind": "courses", "label": "Compulsory courses", "courses": ["COMP6442", "COMP6710", "MATH6005"] },
+    { "id": "practice", "kind": "courses", "label": "Professional practice: COMP6250 or COMP8260", "courses": ["COMP6250", "COMP8260"], "minUnits": 6 },
+    {
+      "id": "comp",
+      "kind": "group",
+      "label": "24 units of further 6000- and 8000-level COMP",
+      "minUnits": 24,
+      "note": "The formal rule names 6000 and 8000 level only; the advice tab also allows 7000 level.",
+      "children": [
+        { "id": "comp-6000", "kind": "pool", "label": "6000-level COMP", "subjects": ["COMP"], "levelMin": 6000, "levelMax": 6000, "minUnits": 0, "maxUnits": 24 },
+        { "id": "comp-8000", "kind": "pool", "label": "8000-level COMP", "subjects": ["COMP"], "levelMin": 8000, "levelMax": 8000, "minUnits": 0, "maxUnits": 24 }
+      ]
+    },
+    { "id": "total", "kind": "total", "label": "Total units", "minUnits": 48 }
+  ]
+}

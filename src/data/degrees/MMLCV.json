@@ -1,0 +1,116 @@
+{
+  "code": "MMLCV",
+  "name": "Master of Machine Learning and Computer Vision",
+  "year": 2027,
+  "totalUnits": 96,
+  "durationYears": 2,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/program/MMLCV",
+  "notes": [
+    "Students without an identified supervisor/client approved for COMP8800 or COMP8830 by week 1 of their penultimate semester must complete COMP8715 to graduate.",
+    "The Academic Advice tab says MMLCV students must complete COMP8280 (as a substitute for COMP8260/COMP6250) before enrolling in the research project, TechLauncher or internship. The formal Program Requirements do not list COMP8280, so it is not modelled here.",
+    "The Academic Advice tab titles COMP8260 'Reponsible Practice: Innovation and Leadership'; the Program Requirements title 'Professional Practice: Responsible Innovation and Leadership' is used here.",
+    "The 18-unit Computer Vision and Machine Learning list overlaps the 24-unit core list; a course only counts once.",
+    "University electives must be courses offered to postgraduate students; undergraduate courses will not be credited.",
+    "Research-project students must take COMP6445 in first year (Semester 1 only). Internship/TechLauncher students should take COMP6442 in first year.",
+    "Credit/exemption: students with prior programming or maths study may get credit or exemption for introductory core courses; exempted courses must be replaced by elective COMP courses. Credit may shorten the degree (international students' eCoE will be revised).",
+    "No exit or transfer pathways are listed on the 2027 page."
+  ],
+  "courses": {
+    "COMP6710": { "title": "Structured Programming", "units": 6 },
+    "COMP6250": { "title": "Professional Practice: Holistic Thinking and Communication", "units": 6 },
+    "COMP8260": { "title": "Professional Practice: Responsible Innovation and Leadership", "units": 6 },
+    "COMP6528": { "title": "Computer Vision", "units": 6 },
+    "COMP6670": { "title": "Introduction to Machine Learning", "units": 6 },
+    "COMP8536": { "title": "Advanced Topics in Deep Learning for Computer Vision", "units": 6 },
+    "COMP8539": { "title": "Advanced Topics in Computer Vision", "units": 6 },
+    "COMP8600": { "title": "Statistical Machine Learning", "units": 6 },
+    "COMP8650": { "title": "Advanced Topics in Machine Learning", "units": 6 },
+    "COMP6261": { "title": "Information Theory", "units": 6 },
+    "COMP6262": { "title": "Logic", "units": 6 },
+    "COMP6320": { "title": "Artificial Intelligence", "units": 6 },
+    "COMP6490": { "title": "Document Analysis", "units": 6 },
+    "COMP8535": { "title": "Engineering Data Analytics", "units": 6 },
+    "COMP8610": { "title": "Computer Graphics", "units": 6 },
+    "COMP8620": { "title": "Advanced Topics in Artificial Intelligence", "units": 6 },
+    "COMP8691": { "title": "Optimisation", "units": 6 },
+    "ENGN6627": { "title": "Robotics", "units": 6 },
+    "COMP6442": { "title": "Software Construction", "units": 6 },
+    "COMP8715": { "title": "Advanced Computing Team Project", "units": 6 },
+    "COMP8830": { "title": "Computing Internship", "units": 12 },
+    "COMP6445": { "title": "Computing Research Methods", "units": 6 },
+    "COMP8800": { "title": "Advanced Computing Research Project", "units": 12 }
+  },
+  "requirements": [
+    { "id": "programming", "kind": "courses", "label": "COMP6710 Structured Programming", "courses": ["COMP6710"] },
+    { "id": "practice", "kind": "courses", "label": "Professional practice: COMP6250 or COMP8260", "courses": ["COMP6250", "COMP8260"], "minUnits": 6 },
+    {
+      "id": "core",
+      "kind": "courses",
+      "label": "24 units of core Machine Learning and Computer Vision",
+      "minUnits": 24,
+      "courses": ["COMP6528", "COMP6670", "COMP8536", "COMP8539", "COMP8600", "COMP8650"]
+    },
+    {
+      "id": "mlcv",
+      "kind": "courses",
+      "label": "A further 18 units of Computer Vision and Machine Learning courses",
+      "minUnits": 18,
+      "courses": ["COMP6261", "COMP6262", "COMP6320", "COMP6490", "COMP6528", "COMP6670", "COMP8535", "COMP8536", "COMP8539", "COMP8600", "COMP8610", "COMP8620", "COMP8650", "COMP8691", "ENGN6627"]
+    },
+    {
+      "id": "capstone",
+      "kind": "choice",
+      "label": "Capstone (30 units)",
+      "options": [
+        {
+          "id": "project-internship",
+          "kind": "group",
+          "label": "Team project or internship",
+          "children": [
+            { "id": "construction", "kind": "courses", "label": "COMP6442 Software Construction", "courses": ["COMP6442"] },
+            {
+              "id": "project",
+              "kind": "choice",
+              "label": "12 units of team project or industry internship",
+              "options": [
+                {
+                  "id": "team",
+                  "kind": "group",
+                  "label": "Team project",
+                  "children": [
+                    { "id": "course", "kind": "courses", "label": "COMP8715 in two consecutive semesters (6+6)", "courses": [{ "code": "COMP8715", "times": 2 }] }
+                  ]
+                },
+                {
+                  "id": "internship",
+                  "kind": "group",
+                  "label": "Industry internship",
+                  "children": [{ "id": "course", "kind": "courses", "label": "COMP8830 Computing Internship", "courses": ["COMP8830"] }]
+                }
+              ]
+            },
+            { "id": "extra", "kind": "pool", "label": "12 units of 6000-, 7000- or 8000-level COMP or ENGN", "subjects": ["COMP", "ENGN"], "levelMin": 6000, "levelMax": 8000, "minUnits": 12 }
+          ]
+        },
+        {
+          "id": "research",
+          "kind": "group",
+          "label": "Research project",
+          "children": [
+            { "id": "methods", "kind": "courses", "label": "COMP6445 Computing Research Methods", "courses": ["COMP6445"] },
+            { "id": "project", "kind": "courses", "label": "COMP8800 in two consecutive semesters (12+12)", "courses": [{ "code": "COMP8800", "times": 2 }] }
+          ]
+        }
+      ]
+    },
+    { "id": "electives", "kind": "electives", "label": "Postgraduate university electives", "minUnits": 12, "levelMin": 6000 },
+    { "id": "min-8000", "kind": "constraint", "label": "8000-level courses", "scope": "plan", "levelMin": 8000, "levelMax": 8000, "minUnits": 24 },
+    {
+      "id": "supervisor",
+      "kind": "manual",
+      "label": "Supervisor/client approval for COMP8800 or COMP8830",
+      "note": "Approval must be in place by week 1 of the penultimate semester, otherwise COMP8715 is required to graduate."
+    },
+    { "id": "total", "kind": "total", "label": "Total units", "minUnits": 96 }
+  ]
+}

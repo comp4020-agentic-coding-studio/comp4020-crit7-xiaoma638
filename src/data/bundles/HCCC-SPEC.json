@@ -1,0 +1,85 @@
+{
+  "code": "HCCC-SPEC",
+  "name": "Human-Centred and Creative Computing",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/HCCC-SPEC",
+  "notes": [
+    "Only available to students studying BAC (AACOM) and BACR&D (AACRD).",
+    "The page's 'maximum of 6 units' from COMP3540/COMP3670 is implied: after COMP3900 and at least 12 units from the 4000-level list, only 6 units of the 24 remain."
+  ],
+  "courses": {
+    "COMP3540": {
+      "title": "Game Development",
+      "units": 6
+    },
+    "COMP3670": {
+      "title": "Introduction to Machine Learning",
+      "units": 6
+    },
+    "COMP3900": {
+      "title": "Human-Computer Interaction",
+      "units": 6
+    },
+    "COMP4020": {
+      "title": "Advanced Topics in Human-Centred and Creative Computing",
+      "units": 6
+    },
+    "COMP4350": {
+      "title": "Sound and Music Computing",
+      "units": 6
+    },
+    "COMP4528": {
+      "title": "Computer Vision",
+      "units": 6
+    },
+    "COMP4610": {
+      "title": "Computer Graphics",
+      "units": 6
+    }
+  },
+  "requirements": [
+    {
+      "id": "compulsory",
+      "kind": "courses",
+      "label": "COMP3900 Human-Computer Interaction",
+      "courses": [
+        "COMP3900"
+      ]
+    },
+    {
+      "id": "advanced",
+      "kind": "courses",
+      "label": "At least 12 units from the 4000-level list",
+      "courses": [
+        "COMP4020",
+        "COMP4350",
+        "COMP4528",
+        "COMP4610"
+      ],
+      "minUnits": 12
+    },
+    {
+      "id": "rest",
+      "kind": "courses",
+      "label": "Remaining 6 units from the 4000-level list, COMP3540 or COMP3670 (at most 6 from the latter two)",
+      "courses": [
+        "COMP3540",
+        "COMP3670",
+        "COMP4020",
+        "COMP4350",
+        "COMP4528",
+        "COMP4610"
+      ],
+      "minUnits": 6
+    },
+    {
+      "id": "level-4000",
+      "kind": "constraint",
+      "label": "At least 12 units of 4000-level courses",
+      "scope": "parent",
+      "levelMin": 4000,
+      "levelMax": 4000,
+      "minUnits": 12
+    }
+  ]
+}

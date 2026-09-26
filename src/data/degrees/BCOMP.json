@@ -1,0 +1,304 @@
+{
+  "code": "BCOMP",
+  "name": "Bachelor of Computing",
+  "year": 2027,
+  "totalUnits": 144,
+  "durationYears": 3,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/program/BCOMP",
+  "notes": [
+    "The 3000/4000-level COMP minimum is a whole-degree check; it does not claim courses, so it can be met by courses counted in the core or electives.",
+    "The page omits the unit value for ENVS2015; its 2027 course page gives 6 units.",
+    "Course titles are taken from each course's 2027 P&C page. The program page shows ASIA3032 as 'Digital Asia: Technology and Society' and MUSI3309 as 'Music and Digital Media'; the course pages title them 'Technology and Society in Asia' and 'Digital Music: Platforms, Content and AI'.",
+    "The sample study plan lists COMP2420 in year 2, but it is not a program requirement.",
+    "Only a major in Cyber Security, Information Systems or Software Development gives Australian Computer Society accreditation / professional membership.",
+    "Double degrees: 96 units come from the BCOMP rules, and at most 36 units of 1000-level courses count towards the BCOMP half.",
+    "Load limit: at most 24 units per semester; international students must study at least 24 units per semester.",
+    "COMP1130 is offered only in Semester 1 and COMP1140 only in Semester 2.",
+    "Admission: selection rank 80 (guaranteed entry), minimum unadjusted rank 70; mathematics prerequisite (e.g. NSW HSC Mathematics Advanced)."
+  ],
+  "courses": {
+    "COMP1100": {
+      "title": "Programming as Problem Solving",
+      "units": 6
+    },
+    "COMP1130": {
+      "title": "Programming as Problem Solving (Advanced)",
+      "units": 6
+    },
+    "COMP1110": {
+      "title": "Structured Programming",
+      "units": 6
+    },
+    "COMP1140": {
+      "title": "Structured Programming (Advanced)",
+      "units": 6
+    },
+    "MATH1005": {
+      "title": "Discrete Mathematical Models",
+      "units": 6
+    },
+    "MATH2222": {
+      "title": "Introduction to Mathematical Thinking: Problem-Solving and Proofs",
+      "units": 6
+    },
+    "COMP1600": {
+      "title": "Foundations of Computing",
+      "units": 6
+    },
+    "COMP2100": {
+      "title": "Software Construction",
+      "units": 6
+    },
+    "COMP2300": {
+      "title": "Computer Architecture",
+      "units": 6
+    },
+    "COMP2400": {
+      "title": "Relational Databases",
+      "units": 6
+    },
+    "ARTH2181": {
+      "title": "Digital Approaches to Art History and Curatorship",
+      "units": 6
+    },
+    "ASIA3032": {
+      "title": "Technology and Society in Asia",
+      "units": 6
+    },
+    "DESN2010": {
+      "title": "Making Creative and Critical Technologies: Physical Computing for Design and Art",
+      "units": 6
+    },
+    "ENGN1211": {
+      "title": "Engineering Design 1: Discovering Engineering",
+      "units": 6
+    },
+    "ENVS2015": {
+      "title": "GIS and Spatial Analysis",
+      "units": 6
+    },
+    "INFS2024": {
+      "title": "Information Systems Analysis",
+      "units": 6
+    },
+    "INFS3002": {
+      "title": "Enterprise Systems in Business",
+      "units": 6
+    },
+    "INFS3024": {
+      "title": "Information Systems Management",
+      "units": 6
+    },
+    "MATH1013": {
+      "title": "Mathematics and Applications 1",
+      "units": 6
+    },
+    "MATH1115": {
+      "title": "Advanced Mathematics and Applications 1",
+      "units": 6
+    },
+    "MATH2301": {
+      "title": "Games, Graphs and Machines",
+      "units": 6
+    },
+    "MATH2307": {
+      "title": "Bioinformatics and Biological Modelling",
+      "units": 6
+    },
+    "MGMT2009": {
+      "title": "Design Thinking: Human-Centred Innovation",
+      "units": 6
+    },
+    "MUSI3309": {
+      "title": "Digital Music: Platforms, Content and AI",
+      "units": 6
+    },
+    "SCOM3029": {
+      "title": "Science Communication and Planetary Crises",
+      "units": 6
+    },
+    "SOCY2038": {
+      "title": "Introduction to Quantitative Research Methods",
+      "units": 6
+    },
+    "SOCY2166": {
+      "title": "Social Science of the Internet",
+      "units": 6
+    },
+    "STAT1003": {
+      "title": "Statistical Techniques",
+      "units": 6
+    },
+    "STAT1008": {
+      "title": "Quantitative Research Methods",
+      "units": 6
+    }
+  },
+  "requirements": [
+    {
+      "id": "core",
+      "kind": "group",
+      "label": "At least 96 units from the following lists",
+      "minUnits": 96,
+      "children": [
+        {
+          "id": "foundations",
+          "kind": "group",
+          "label": "Foundations: one course from each pair",
+          "children": [
+            {
+              "id": "programming",
+              "kind": "courses",
+              "label": "COMP1100 or COMP1130",
+              "courses": [
+                "COMP1100",
+                "COMP1130"
+              ],
+              "minUnits": 6
+            },
+            {
+              "id": "structured",
+              "kind": "courses",
+              "label": "COMP1110 or COMP1140",
+              "courses": [
+                "COMP1110",
+                "COMP1140"
+              ],
+              "minUnits": 6
+            },
+            {
+              "id": "maths",
+              "kind": "courses",
+              "label": "MATH1005 or MATH2222",
+              "courses": [
+                "MATH1005",
+                "MATH2222"
+              ],
+              "minUnits": 6
+            }
+          ]
+        },
+        {
+          "id": "compulsory",
+          "kind": "courses",
+          "label": "Compulsory courses",
+          "courses": [
+            "COMP1600",
+            "COMP2100",
+            "COMP2300",
+            "COMP2400"
+          ]
+        },
+        {
+          "id": "computing",
+          "kind": "choice",
+          "label": "48 units of COMP courses or one computing major",
+          "options": [
+            {
+              "id": "comp-48",
+              "kind": "group",
+              "label": "48 units of COMP courses",
+              "children": [
+                {
+                  "id": "comp",
+                  "kind": "pool",
+                  "label": "48 units from the subject area COMP Computer Science",
+                  "subjects": [
+                    "COMP"
+                  ],
+                  "minUnits": 48
+                }
+              ]
+            },
+            {
+              "bundle": "COMS-MAJ"
+            },
+            {
+              "bundle": "CSEC-MAJ"
+            },
+            {
+              "bundle": "DTSC-MAJ"
+            },
+            {
+              "bundle": "HCCC-MAJ"
+            },
+            {
+              "bundle": "INFS-MAJ"
+            },
+            {
+              "bundle": "INSY-MAJ"
+            },
+            {
+              "bundle": "SOFT-MAJ"
+            }
+          ]
+        },
+        {
+          "id": "ict",
+          "kind": "courses",
+          "label": "ICT-related courses",
+          "minUnits": 6,
+          "courses": [
+            "ARTH2181",
+            "ASIA3032",
+            "DESN2010",
+            "ENGN1211",
+            "ENVS2015",
+            "INFS2024",
+            "INFS3002",
+            "INFS3024",
+            "MATH1013",
+            "MATH1115",
+            "MATH2301",
+            "MATH2307",
+            "MGMT2009",
+            "MUSI3309",
+            "SCOM3029",
+            "SOCY2038",
+            "SOCY2166",
+            "STAT1003",
+            "STAT1008"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "electives",
+      "kind": "electives",
+      "label": "Electives",
+      "minUnits": 48
+    },
+    {
+      "id": "upper-comp",
+      "kind": "constraint",
+      "label": "At least 24 units of 3000- and 4000-level COMP courses",
+      "scope": "plan",
+      "subjects": [
+        "COMP"
+      ],
+      "levelMin": 3000,
+      "levelMax": 4000,
+      "minUnits": 24
+    },
+    {
+      "id": "max-1000",
+      "kind": "constraint",
+      "label": "1000-level courses",
+      "scope": "plan",
+      "levelMax": 1000,
+      "maxUnits": 60
+    },
+    {
+      "id": "tps",
+      "kind": "manual",
+      "label": "12 units tagged Transdisciplinary Problem-Solving",
+      "note": "P&C doesn't publish which courses carry this tag — check each course's page."
+    },
+    {
+      "id": "total",
+      "kind": "total",
+      "label": "Total units",
+      "minUnits": 144
+    }
+  ]
+}

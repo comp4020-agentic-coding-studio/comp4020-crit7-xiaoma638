@@ -1,0 +1,120 @@
+{
+  "code": "CSEC-MAJ",
+  "name": "Cyber Security Major",
+  "units": 48,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/major/CSEC-MAJ",
+  "notes": [
+    "The page lists only these courses as sources for the 48 units, so the units left after the compulsory courses are modelled as a group that must be filled from the minimum list and the capped list together.",
+    "Unlike the other BCOMP majors, this page states no maximum on 1000-level courses, so none is modelled.",
+    "The page omits unit values for these courses; units are taken from each course's 2027 P&C page (all 6)."
+  ],
+  "courses": {
+    "COMP2120": {
+      "title": "Software Engineering",
+      "units": 6
+    },
+    "COMP2310": {
+      "title": "Systems, Networks, and Concurrency",
+      "units": 6
+    },
+    "COMP2700": {
+      "title": "Cyber Security Foundations",
+      "units": 6
+    },
+    "COMP3300": {
+      "title": "Operating Systems Implementation",
+      "units": 6
+    },
+    "COMP3310": {
+      "title": "Computer Networks",
+      "units": 6
+    },
+    "COMP3704": {
+      "title": "Network Security",
+      "units": 6
+    },
+    "COMP4130": {
+      "title": "Managing Software Quality and Process",
+      "units": 6
+    },
+    "COMP4703": {
+      "title": "Vulnerability Research and Exploit Mitigation",
+      "units": 6
+    },
+    "COMP4011": {
+      "title": "Advanced Topics in Formal Methods and Programming Languages",
+      "units": 6
+    },
+    "COMP4045": {
+      "title": "Advanced Topics in Computer Systems",
+      "units": 6
+    },
+    "COMP4712": {
+      "title": "Compiler Construction",
+      "units": 6
+    },
+    "CRIM2010": {
+      "title": "Cybercrime: an introduction",
+      "units": 6
+    },
+    "MATH3301": {
+      "title": "Number Theory and Cryptography",
+      "units": 6
+    }
+  },
+  "requirements": [
+    {
+      "id": "compulsory",
+      "kind": "courses",
+      "label": "Compulsory courses",
+      "courses": [
+        "COMP2120",
+        "COMP2310",
+        "COMP2700",
+        "COMP3300",
+        "COMP3310",
+        "COMP3704"
+      ]
+    },
+    {
+      "id": "lists",
+      "kind": "group",
+      "label": "Remaining 12 units from the lists below",
+      "minUnits": 12,
+      "children": [
+        {
+          "id": "min-list",
+          "kind": "courses",
+          "label": "At least 6 units: COMP4130 or COMP4703",
+          "courses": [
+            "COMP4130",
+            "COMP4703"
+          ],
+          "minUnits": 6
+        },
+        {
+          "id": "max-list",
+          "kind": "courses",
+          "label": "Up to 6 units from COMP4011, COMP4045, COMP4712, CRIM2010, MATH3301",
+          "courses": [
+            "COMP4011",
+            "COMP4045",
+            "COMP4712",
+            "CRIM2010",
+            "MATH3301"
+          ],
+          "maxUnits": 6
+        }
+      ]
+    },
+    {
+      "id": "min-3000",
+      "kind": "constraint",
+      "label": "At least 18 units of 3000- and 4000-level courses",
+      "scope": "parent",
+      "levelMin": 3000,
+      "levelMax": 4000,
+      "minUnits": 18
+    }
+  ]
+}

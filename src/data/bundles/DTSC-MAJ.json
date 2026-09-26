@@ -1,0 +1,96 @@
+{
+  "code": "DTSC-MAJ",
+  "name": "Data Science Major",
+  "units": 48,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/major/DTSC-MAJ",
+  "notes": [
+    "This major is not available to BADAN students.",
+    "The page omits unit values for these courses; units are taken from each course's 2027 P&C page (all 6)."
+  ],
+  "courses": {
+    "COMP3430": {
+      "title": "Data Wrangling",
+      "units": 6
+    },
+    "COMP4425": {
+      "title": "Data Mining",
+      "units": 6
+    },
+    "COMP2120": {
+      "title": "Software Engineering",
+      "units": 6
+    },
+    "COMP2700": {
+      "title": "Cyber Security Foundations",
+      "units": 6
+    },
+    "COMP3670": {
+      "title": "Introduction to Machine Learning",
+      "units": 6
+    },
+    "COMP4650": {
+      "title": "Document Analysis",
+      "units": 6
+    },
+    "COMP4880": {
+      "title": "Computational Methods for Network Science",
+      "units": 6
+    },
+    "MATH2307": {
+      "title": "Bioinformatics and Biological Modelling",
+      "units": 6
+    },
+    "SOCR3001": {
+      "title": "Data for Decision Making",
+      "units": 6
+    },
+    "STAT1003": {
+      "title": "Statistical Techniques",
+      "units": 6
+    }
+  },
+  "requirements": [
+    {
+      "id": "compulsory",
+      "kind": "courses",
+      "label": "Compulsory courses",
+      "courses": [
+        "COMP3430",
+        "COMP4425"
+      ]
+    },
+    {
+      "id": "list",
+      "kind": "courses",
+      "label": "36 units from the list",
+      "courses": [
+        "COMP2120",
+        "COMP2700",
+        "COMP3670",
+        "COMP4650",
+        "COMP4880",
+        "MATH2307",
+        "SOCR3001",
+        "STAT1003"
+      ],
+      "minUnits": 36
+    },
+    {
+      "id": "max-1000",
+      "kind": "constraint",
+      "label": "At most 18 units of 1000-level courses",
+      "scope": "parent",
+      "levelMax": 1000,
+      "maxUnits": 18
+    },
+    {
+      "id": "min-3000",
+      "kind": "constraint",
+      "label": "At least 18 units of 3000- and 4000-level courses",
+      "scope": "parent",
+      "levelMin": 3000,
+      "levelMax": 4000,
+      "minUnits": 18
+    }
+  ]
+}

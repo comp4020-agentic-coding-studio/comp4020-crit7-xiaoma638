@@ -1,0 +1,120 @@
+{
+  "code": "AACOM",
+  "name": "Bachelor of Advanced Computing (Honours)",
+  "year": 2027,
+  "totalUnits": 192,
+  "durationYears": 4,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/program/AACOM",
+  "notes": [
+    "The honours mark (APM weighted by level) is not calculated here.",
+    "The 2027 page lists a Machine Learning specialisation among the five options but does not link it. Its code was MACL-SPEC (linked from the 2024-2026 AACOM pages), but there is no 2027 page for MACL-SPEC and no Machine Learning specialisation in the 2027 P&C specialisation list, so it is left out of the choice here."
+  ],
+  "courses": {
+    "COMP1100": { "title": "Programming as Problem Solving", "units": 6 },
+    "COMP1130": { "title": "Programming as Problem Solving (Advanced)", "units": 6 },
+    "COMP1110": { "title": "Structured Programming", "units": 6 },
+    "COMP1140": { "title": "Structured Programming (Advanced)", "units": 6 },
+    "MATH1005": { "title": "Discrete Mathematical Models", "units": 6 },
+    "MATH2222": { "title": "Introduction to Mathematical Thinking: Problem-Solving and Proofs", "units": 6 },
+    "COMP2100": { "title": "Software Construction", "units": 6 },
+    "COMP2120": { "title": "Software Engineering", "units": 6 },
+    "COMP2300": { "title": "Computer Architecture", "units": 6 },
+    "COMP2310": { "title": "Systems, Networks and Concurrency", "units": 6 },
+    "COMP2400": { "title": "Relational Databases", "units": 6 },
+    "COMP3600": { "title": "Algorithms", "units": 6 },
+    "COMP3630": { "title": "Theory of Computation", "units": 6 },
+    "COMP4450": { "title": "Computing Research Methods", "units": 6 },
+    "COMP4550": { "title": "Computing Research Project", "units": 12 },
+    "COMP4500": { "title": "Software Engineering Team Project", "units": 6 },
+    "COMP4820": { "title": "Advanced Computing Internship", "units": 12 },
+    "ARTH2181": { "title": "Digital Approaches to Art History and Curatorship", "units": 6 },
+    "ASIA3032": { "title": "Digital Asia: Technology and Society", "units": 6 },
+    "DESN2010": { "title": "Making Creative and Critical Technologies: Physical Computing for Design and Art", "units": 6 },
+    "ENGN1211": { "title": "Engineering Design 1: Discovering Engineering", "units": 6 },
+    "ENVS2015": { "title": "GIS and Spatial Analysis", "units": 6 },
+    "INFS2024": { "title": "Information Systems Analysis", "units": 6 },
+    "INFS3002": { "title": "Enterprise Systems in Business", "units": 6 },
+    "INFS3024": { "title": "Information Systems Management", "units": 6 },
+    "MATH1013": { "title": "Mathematics and Applications 1", "units": 6 },
+    "MATH1115": { "title": "Advanced Mathematics and Applications 1", "units": 6 },
+    "MATH2301": { "title": "Games, Graphs and Machines", "units": 6 },
+    "MATH2307": { "title": "Bioinformatics and Biological Modelling", "units": 6 },
+    "MGMT2009": { "title": "Design Thinking: Human-Centred Innovation", "units": 6 },
+    "MUSI3309": { "title": "Music and Digital Media", "units": 6 },
+    "SCOM3029": { "title": "Science Communication and Planetary Crises", "units": 6 },
+    "SOCY2038": { "title": "Introduction to Quantitative Research Methods", "units": 6 },
+    "SOCY2166": { "title": "Social Science of the Internet", "units": 6 },
+    "STAT1003": { "title": "Statistical Techniques", "units": 6 },
+    "STAT1008": { "title": "Quantitative Research Methods", "units": 6 }
+  },
+  "requirements": [
+    {
+      "id": "foundations",
+      "kind": "group",
+      "label": "Foundations: one course from each pair",
+      "children": [
+        { "id": "programming", "kind": "courses", "label": "COMP1100 or COMP1130", "courses": ["COMP1100", "COMP1130"], "minUnits": 6 },
+        { "id": "structured", "kind": "courses", "label": "COMP1110 or COMP1140", "courses": ["COMP1110", "COMP1140"], "minUnits": 6 },
+        { "id": "maths", "kind": "courses", "label": "MATH1005 or MATH2222", "courses": ["MATH1005", "MATH2222"], "minUnits": 6 }
+      ]
+    },
+    {
+      "id": "compulsory",
+      "kind": "courses",
+      "label": "Compulsory courses",
+      "courses": ["COMP2100", "COMP2120", "COMP2300", "COMP2310", "COMP2400", "COMP3600", "COMP3630", "COMP4450"]
+    },
+    {
+      "id": "spec",
+      "kind": "choice",
+      "label": "Specialisation (24 units)",
+      "options": [{ "bundle": "ARIN-SPEC" }, { "bundle": "HCCC-SPEC" }, { "bundle": "SYAR-SPEC" }, { "bundle": "THCS-SPEC" }]
+    },
+    {
+      "id": "capstone",
+      "kind": "choice",
+      "label": "Capstone (24 units)",
+      "options": [
+        {
+          "id": "research",
+          "kind": "group",
+          "label": "Research project",
+          "children": [
+            { "id": "project", "kind": "courses", "label": "COMP4550 in two consecutive semesters (12+12)", "courses": [{ "code": "COMP4550", "times": 2 }] }
+          ]
+        },
+        {
+          "id": "team",
+          "kind": "group",
+          "label": "Software engineering team project",
+          "children": [
+            { "id": "project", "kind": "courses", "label": "COMP4500 in two consecutive semesters (6+6)", "courses": [{ "code": "COMP4500", "times": 2 }] },
+            { "id": "extra", "kind": "pool", "label": "12 units of other 4000-level COMP", "subjects": ["COMP"], "levelMin": 4000, "levelMax": 4000, "exclude": ["COMP4500", "COMP4550", "COMP4820"], "minUnits": 12 }
+          ]
+        },
+        {
+          "id": "internship",
+          "kind": "group",
+          "label": "Advanced computing internship",
+          "children": [
+            { "id": "project", "kind": "courses", "label": "COMP4820", "courses": ["COMP4820"] },
+            { "id": "extra", "kind": "pool", "label": "12 units of other 4000-level COMP", "subjects": ["COMP"], "levelMin": 4000, "levelMax": 4000, "exclude": ["COMP4500", "COMP4550", "COMP4820"], "minUnits": 12 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ict",
+      "kind": "courses",
+      "label": "ICT-related courses",
+      "minUnits": 12,
+      "courses": ["ARTH2181", "ASIA3032", "DESN2010", "ENGN1211", "ENVS2015", "INFS2024", "INFS3002", "INFS3024", "MATH1013", "MATH1115", "MATH2301", "MATH2307", "MGMT2009", "MUSI3309", "SCOM3029", "SOCY2038", "SOCY2166", "STAT1003", "STAT1008"]
+    },
+    { "id": "upper-comp", "kind": "pool", "label": "3000- or 4000-level COMP", "subjects": ["COMP"], "levelMin": 3000, "levelMax": 4000, "minUnits": 18 },
+    { "id": "electives", "kind": "electives", "label": "Electives", "minUnits": 48 },
+    { "id": "max-1000", "kind": "constraint", "label": "1000-level courses", "scope": "plan", "levelMax": 1000, "maxUnits": 60 },
+    { "id": "comp-4000", "kind": "constraint", "label": "4000-level COMP courses", "scope": "plan", "subjects": ["COMP"], "levelMin": 4000, "levelMax": 4000, "minUnits": 48 },
+    { "id": "tps", "kind": "manual", "label": "12 units tagged Transdisciplinary Problem-Solving", "note": "P&C doesn't publish which courses carry this tag — check each course's page." },
+    { "id": "total", "kind": "total", "label": "Total units", "minUnits": 192 }
+  ]
+}

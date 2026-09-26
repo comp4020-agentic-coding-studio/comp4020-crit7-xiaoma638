@@ -1,0 +1,97 @@
+{
+  "code": "INFS-MAJ",
+  "name": "Information Systems Major",
+  "units": 48,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/major/INFS-MAJ",
+  "notes": [
+    "This major is incompatible with the Business Information Systems Major.",
+    "The page titles INFS3059 'Project Management and Information Systems' and COMP3900 'Human Computer Interface Design and Evaluation'; the 2027 course pages title them 'Information Systems Capstone Project' and 'Human-Computer Interaction', which are used here.",
+    "The list names COMP3425 Data Mining, while the Data Science major uses COMP4425 Data Mining; both codes exist in 2027 P&C and this page's code is kept."
+  ],
+  "courses": {
+    "COMP2120": {
+      "title": "Software Engineering",
+      "units": 6
+    },
+    "INFS1001": {
+      "title": "Business Information Systems",
+      "units": 6
+    },
+    "INFS2024": {
+      "title": "Information Systems Analysis",
+      "units": 6
+    },
+    "INFS3024": {
+      "title": "Information Systems Management",
+      "units": 6
+    },
+    "INFS3059": {
+      "title": "Information Systems Capstone Project",
+      "units": 6
+    },
+    "COMP3425": {
+      "title": "Data Mining",
+      "units": 6
+    },
+    "COMP3430": {
+      "title": "Data Wrangling",
+      "units": 6
+    },
+    "COMP3900": {
+      "title": "Human-Computer Interaction",
+      "units": 6
+    },
+    "COMP4650": {
+      "title": "Document Analysis",
+      "units": 6
+    },
+    "INFS3002": {
+      "title": "Enterprise Systems in Business",
+      "units": 6
+    }
+  },
+  "requirements": [
+    {
+      "id": "compulsory",
+      "kind": "courses",
+      "label": "Compulsory courses",
+      "courses": [
+        "COMP2120",
+        "INFS1001",
+        "INFS2024",
+        "INFS3024",
+        "INFS3059"
+      ]
+    },
+    {
+      "id": "list",
+      "kind": "courses",
+      "label": "18 units from the list",
+      "courses": [
+        "COMP3425",
+        "COMP3430",
+        "COMP3900",
+        "COMP4650",
+        "INFS3002"
+      ],
+      "minUnits": 18
+    },
+    {
+      "id": "max-1000",
+      "kind": "constraint",
+      "label": "At most 18 units of 1000-level courses",
+      "scope": "parent",
+      "levelMax": 1000,
+      "maxUnits": 18
+    },
+    {
+      "id": "min-3000",
+      "kind": "constraint",
+      "label": "At least 18 units of 3000- and 4000-level courses",
+      "scope": "parent",
+      "levelMin": 3000,
+      "levelMax": 4000,
+      "minUnits": 18
+    }
+  ]
+}
