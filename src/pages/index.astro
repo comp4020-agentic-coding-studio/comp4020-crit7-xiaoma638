@@ -5,55 +5,46 @@ import { currentPlan } from "../lib/session";
 
 const plan = currentPlan(Astro.cookies);
 const degrees = listDegrees();
-const undergrad = degrees.filter((d) => /^[A-Z]/.test(d.code));
-const postgrad = degrees.filter((d) => /^\d/.test(d.code));
-const thisYear = new Date().getFullYear();
-const years = Array.from({ length: 8 }, (_, i) => thisYear - 5 + i);
-const selectedYear = plan?.startYear ?? thisYear;
+const groups = [
+  { label: "Undergraduate", list: degrees.filter((d) => /^[A-Z]/.test(d.code)) },
+  { label: "Postgraduate", list: degrees.filter((d) => /^\d/.test(d.code)) },
+].filter((g) => g.list.length > 0);
+const rulesYear = degrees[0]?.year;
 ---
 
 <Layout title="Choose a degree — Degree planner">
   <h1>Plan an ANU computing degree</h1>
   <p class="lede">
-    Pick your degree and the year you started. Add courses to semesters and the planner tells you, after every change, which
-    requirements you've met and what's still missing — using the 2027 rules from ANU Programs and Courses.
+    Pick your degree, then add courses to semesters. After every change the planner shows which requirements you've met and
+    what's still missing.
+  </p>
+  <p class="callout">
+    Every degree here follows the <strong>{rulesYear}</strong> rules from ANU Programs and Courses, so plans start in {rulesYear}{" "}
+    Semester 1. If you started earlier, your own rules may differ — check the P&C page for your commencement year.
   </p>
   {
     plan && (
-      <p class="callout">
+      <p>
         You already have a plan. <a href="/plan">Go back to it</a>, or choose a different degree below — your courses come with
         you.
       </p>
     )
   }
   <form method="post" action="/api/plans" class="degree-form">
-    {
-      [
-        { heading: "Undergraduate", list: undergrad },
-        { heading: "Postgraduate", list: postgrad },
-      ].map(
-        (group) =>
-          group.list.length > 0 && (
-            <fieldset>
-              <legend>{group.heading}</legend>
-              {group.list.map((d) => (
-                <label class="degree-option">
-                  <input type="radio" name="degree" value={d.code} required checked={plan?.degreeCode === d.code} />
-                  <span>
-                    <strong>{d.name}</strong>
-                    <span class="muted">
-                      {d.code} · {d.totalUnits} units · {d.durationYears} {d.durationYears === 1 ? "year" : "years"}
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </fieldset>
-          ),
-      )
-    }
-    <label for="startYear">Year you started</label>
-    <select id="startYear" name="startYear">
-      {years.map((y) => <option value={y} selected={y === selectedYear}>{y}</option>)}
+    <label for="degree">Degree</label>
+    <select id="degree" name="degree" required>
+      {!plan && <option value="">— choose a degree —</option>}
+      {
+        groups.map((g) => (
+          <optgroup label={g.label}>
+            {g.list.map((d) => (
+              <option value={d.code} selected={plan?.degreeCode === d.code}>
+                {d.name} ({d.code}, {d.totalUnits} units)
+              </option>
+            ))}
+          </optgroup>
+        ))
+      }
     </select>
     <button>{plan ? "Switch to this degree" : "Start planning"}</button>
   </form>

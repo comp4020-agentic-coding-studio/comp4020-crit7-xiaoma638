@@ -48,14 +48,15 @@ const shownChildren = r.kind === "choice" ? (r.children[0]?.children ?? []) : r.
     shownMissing.length > 0 && (
       <p class="missing">
         {r.kind === "courses" && r.bound === "min" && r.measure === "units" ? "Choose from: " : "Missing: "}
-        {shownMissing.map((code, i) => {
-          const plain = code.split(" ")[0];
+        {shownMissing.map((entry, i) => {
+          const [code, times] = entry.split(" ");
           return (
             <>
-              {i > 0 && ", "}
-              <a href={`/plan?add=${plain}#add`} title={titles.get(plain)}>
-                {code}
+              {i > 0 && " · "}
+              <a href={`/plan?add=${code}#add`} data-add={code} title={code}>
+                {titles.get(code) ?? code}
               </a>
+              {times && ` ${times}`}
             </>
           );
         })}

@@ -22,8 +22,8 @@ async function page(path: string, cookie?: string) {
   return new JSDOM(await res.text()).window.document;
 }
 
-async function startPlan(degree: string, startYear = "2027") {
-  const res = await post("/api/plans", { degree, startYear });
+async function startPlan(degree: string, extra: Record<string, string> = {}) {
+  const res = await post("/api/plans", { degree, ...extra });
   expect(res.status).toBe(303);
   expect(res.headers.get("location")).toBe("/plan");
   const cookie = res.headers.get("set-cookie")?.split(";")[0];
@@ -48,10 +48,19 @@ describe("a degree plan", () => {
     cookie = await startPlan("AACOM");
   });
 
-  it("opens on the chosen degree with its requirements unmet", async () => {
+  it("opens on the chosen degree with nothing met yet", async () => {
     const doc = await page("/plan", cookie);
     expect(doc.querySelector("h1")?.textContent).toContain("Bachelor of Advanced Computing (Honours)");
     expect(requirement(doc, "AACOM/foundations/programming").classList.contains("req-unmet")).toBe(true);
+    // an upper limit with no courses planned is respected, not achieved
+    expect(requirement(doc, "AACOM/max-1000").classList.contains("req-met")).toBe(false);
+    expect(doc.querySelector(".summary")?.textContent).toMatch(/^0 of \d+ requirements met/);
+  });
+
+  it("plans in the year the rules are from, whatever year is asked for", async () => {
+    const doc = await page("/plan", await startPlan("AACOM", { startYear: "2021" }));
+    expect(doc.querySelector('section[aria-label="2027 S1"]')).toBeTruthy();
+    expect(doc.querySelector('section[aria-label="2021 S1"]')).toBeNull();
   });
 
   it("keeps an added course across a reload and marks its requirement met", async () => {
@@ -106,7 +115,9 @@ describe("a degree plan", () => {
 describe("every degree on offer", () => {
   it("can be planned", async () => {
     const doc = await page("/");
-    const codes = [...doc.querySelectorAll('input[name="degree"]')].map((i) => i.getAttribute("value") as string);
+    const codes = [...doc.querySelectorAll('select[name="degree"] option')]
+      .map((o) => o.getAttribute("value") as string)
+      .filter(Boolean);
     expect(codes.length).toBeGreaterThan(0);
     for (const code of codes) {
       const plan = await page("/plan", await startPlan(code));

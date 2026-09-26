@@ -2,13 +2,11 @@ import type { APIRoute } from "astro";
 import { getDegree, savePlan } from "../../lib/db";
 import { rememberPlan } from "../../lib/session";
 
+// Plans start in the year the rules are from: checking a 2021 plan against
+// 2027 rules would give confident wrong answers.
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-  const form = await request.formData();
-  const degree = getDegree(String(form.get("degree") ?? ""));
-  const startYear = Number(form.get("startYear"));
-  if (!degree || !Number.isInteger(startYear) || startYear < 2000 || startYear > 2100) {
-    return redirect("/", 303);
-  }
-  rememberPlan(cookies, savePlan(cookies.get("plan")?.value, degree.code, startYear));
+  const degree = getDegree(String((await request.formData()).get("degree") ?? ""));
+  if (!degree) return redirect("/", 303);
+  rememberPlan(cookies, savePlan(cookies.get("plan")?.value, degree.code, degree.year));
   return redirect("/plan", 303);
 };

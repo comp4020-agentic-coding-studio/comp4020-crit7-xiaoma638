@@ -34,7 +34,10 @@ export interface PlannedCourse {
   units: number;
 }
 
-export type Status = "met" | "unmet" | "manual" | "choose";
+// "within" is an upper limit not yet exceeded: fine, but nothing achieved.
+export type Status = "met" | "unmet" | "manual" | "choose" | "within";
+
+const settled = (s: Status) => s === "met" || s === "manual" || s === "within";
 
 export interface Result {
   id: string;
@@ -224,7 +227,8 @@ class Evaluator {
     }
     const children = node.children.map((c) => results.get(c.id) as Result);
     const units = sum(taken);
-    const childrenMet = children.every((c) => c.status === "met" || c.status === "manual");
+    const childrenMet = children.every((c) => settled(c.status));
+    const goals = children.filter((c) => c.status !== "within" && c.status !== "manual");
     const unitsMet = node.minUnits === undefined || units >= node.minUnits;
     const result: Result = {
       id: node.id,
@@ -232,8 +236,8 @@ class Evaluator {
       kind: "group",
       note: node.note,
       status: childrenMet && unitsMet ? "met" : "unmet",
-      done: node.minUnits === undefined ? children.filter((c) => c.status === "met").length : units,
-      required: node.minUnits ?? children.length,
+      done: node.minUnits === undefined ? goals.filter((c) => c.status === "met").length : units,
+      required: node.minUnits ?? goals.length,
       measure: node.minUnits === undefined ? "parts" : "units",
       bound: "min",
       counted: taken.map((c) => c.code),
@@ -255,7 +259,7 @@ class Evaluator {
         const ok = (node.minUnits === undefined || units >= node.minUnits) && (node.maxUnits === undefined || units <= node.maxUnits);
         return {
           ...base,
-          status: ok ? "met" : "unmet",
+          status: !ok ? "unmet" : isMax ? "within" : "met",
           done: units,
           required: isMax ? (node.maxUnits ?? 0) : node.minUnits!,
           measure: "units",
@@ -310,8 +314,8 @@ function refreshLeaf(r: Result, taken: PlannedCourse[], minUnits: number | undef
   const units = sum(taken);
   r.done = units;
   r.counted = taken.map((c) => c.code);
-  r.status = minUnits === undefined || units >= minUnits ? "met" : "unmet";
-  r.missing = r.status === "met" ? [] : listed.filter((code) => !r.counted.includes(code));
+  r.status = minUnits === undefined ? "within" : units >= minUnits ? "met" : "unmet";
+  r.missing = r.status !== "unmet" ? [] : listed.filter((code) => !r.counted.includes(code));
 }
 
 const isCheck = (n: RuleNode) => ["constraint", "total", "electives", "manual"].includes(n.kind);

@@ -90,7 +90,7 @@ describe("lists with limits inside a bundle", () => {
 
   it("caps a max-only list and tops the group up from the open list", () => {
     const results = evaluate([spec], plan("COMP3620", "COMP3670", "COMP2620", "COMP4620", "COMP4650", "COMP4670"));
-    expect(findDeep(results, "intro")).toMatchObject({ done: 12, bound: "max", status: "met" });
+    expect(findDeep(results, "intro")).toMatchObject({ done: 12, bound: "max", status: "within" });
     expect(findDeep(results, "adv").done).toBe(12);
     expect(findDeep(results, "spec")).toMatchObject({ status: "met", done: 24 });
   });
@@ -150,6 +150,26 @@ describe("whole-plan checks", () => {
   it("flags a level maximum once exceeded", () => {
     const [max] = evaluate(tree, plan("COMP1100", "COMP1110", "MATH1005"));
     expect(max).toMatchObject({ status: "unmet", done: 18, required: 12, bound: "max" });
+  });
+
+  it("never reports an untouched upper limit as met", () => {
+    expect(evaluate(tree, plan())[0]).toMatchObject({ status: "within", done: 0 });
+  });
+
+  it("doesn't count a respected limit as a part achieved", () => {
+    const group: RuleNode[] = [
+      {
+        id: "g",
+        kind: "group",
+        label: "G",
+        children: [
+          { id: "core", kind: "courses", label: "Core", courses: [{ code: "COMP1100", times: 1 }] },
+          { id: "cap", kind: "courses", label: "Cap", maxUnits: 12, courses: [{ code: "COMP2620", times: 1 }] },
+        ],
+      },
+    ];
+    expect(evaluate(group, plan())[0]).toMatchObject({ status: "unmet", done: 0, required: 1 });
+    expect(evaluate(group, plan("COMP1100"))[0]).toMatchObject({ status: "met", done: 1, required: 1 });
   });
 
   it("never marks a manual requirement as met", () => {

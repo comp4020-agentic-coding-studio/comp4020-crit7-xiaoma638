@@ -6,6 +6,13 @@ import { evaluate, type RuleNode } from "../lib/rules";
 import { COURSE_CODE } from "../lib/seed";
 import { currentPlan } from "../lib/session";
 
+const SESSION_ORDER = ["Summer", "S1", "Winter", "S2"];
+const byTerm = (a: string, b: string) => {
+  const [ya, sa] = a.split(" ");
+  const [yb, sb] = b.split(" ");
+  return Number(ya) - Number(yb) || SESSION_ORDER.indexOf(sa) - SESSION_ORDER.indexOf(sb);
+};
+
 const plan = currentPlan(Astro.cookies);
 const degree = plan && getDegree(plan.degreeCode);
 
@@ -19,11 +26,13 @@ function build(plan: Plan, degree: Degree) {
   );
 
   const terms = termsFor(plan, degree);
-  const shown = terms.filter((t) => {
+  const regular = terms.filter((t) => {
     const [year, session] = t.split(" ");
-    const regular = (session === "S1" || session === "S2") && Number(year) < plan.startYear + degree.durationYears;
-    return regular || planned.some((c) => c.term === t);
+    return (session === "S1" || session === "S2") && Number(year) < plan.startYear + degree.durationYears;
   });
+  // any term that holds a course is shown, even one from before the plan's start
+  const used = new Set(planned.map((c) => c.term));
+  const shown = [...new Set([...regular, ...used])].sort(byTerm);
 
   const listed = new Set<string>();
   const walk = (nodes: RuleNode[]) => {
@@ -37,8 +46,11 @@ function build(plan: Plan, degree: Degree) {
   const info = courseInfo([...new Set([...listed, ...planned.map((c) => c.courseCode)])]);
   const titles = new Map([...info].map(([code, i]) => [code, i.title]));
 
-  const top = results.filter((r) => r.status !== "manual");
+  // upper limits aren't goals: respecting one achieves nothing, breaking one is a problem
+  const isLimit = (r: (typeof results)[number]) => r.kind === "constraint" && r.bound === "max";
+  const top = results.filter((r) => r.status !== "manual" && !isLimit(r));
   const met = top.filter((r) => r.status === "met").length;
+  const broken = results.filter((r) => isLimit(r) && r.status === "unmet").length;
   const units = planned.reduce((n, c) => n + c.units, 0);
 
   const nextTerm = shown.find((t) => planned.filter((c) => c.term === t).reduce((n, c) => n + c.units, 0) < 24) ?? shown[0];
@@ -52,8 +64,9 @@ function build(plan: Plan, degree: Degree) {
     info,
     met,
     total: top.length,
+    broken,
     units,
-    complete: results.every((r) => r.status === "met" || r.status === "manual"),
+    complete: results.every((r) => r.status === "met" || r.status === "manual" || r.status === "within"),
     nextTerm,
     prefill: COURSE_CODE.test(prefill) ? prefill : "",
   };
@@ -76,7 +89,7 @@ const error = Astro.url.searchParams.get("error");
         <div class="plan-head">
           <h1>{degree.name}</h1>
           <p class="muted">
-            {degree.code} · started {plan.startYear} · rules from{" "}
+            {degree.code} · semesters from {plan.startYear} · rules from{" "}
             <a href={degree.sourceUrl} rel="external">
               ANU Programs and Courses {degree.year}
             </a>{" "}
@@ -86,7 +99,7 @@ const error = Astro.url.searchParams.get("error");
             <a href="#requirements" class={`summary ${view.complete ? "summary-done" : ""}`}>
               {view.complete
                 ? `All checkable requirements met — ${view.units} units planned`
-                : `${view.met} of ${view.total} requirements met · ${view.units}/${degree.totalUnits} units planned`}
+                : `${view.met} of ${view.total} requirements met · ${view.units}/${degree.totalUnits} units planned${view.broken ? ` · ${view.broken} limit exceeded` : ""}`}
             </a>
           </p>
         </div>
@@ -98,9 +111,25 @@ const error = Astro.url.searchParams.get("error");
         )}
 
         <div class="plan-grid">
-          <section aria-labelledby="semesters">
-            <h2 id="semesters">Semesters</h2>
-            <form method="post" action="/api/plan/courses" class="add" id="add">
+          <section aria-labelledby="requirements" class="requirements">
+            <h2 id="requirements">Degree requirements</h2>
+            <ul class="reqs">
+              {view.results.map((r) => (
+                <Requirement result={r} titles={view.titles} />
+              ))}
+            </ul>
+            {degree.notes && (
+              <details class="notes">
+                <summary>What this planner doesn't check</summary>
+                <ul>
+                  {degree.notes.split("\n").map((n) => (
+                    <li>{n}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </section>
+          <form method="post" action="/api/plan/courses" class="add" id="add" aria-label="Add a course">
               <label>
                 Course code
                 <input
@@ -133,7 +162,8 @@ const error = Astro.url.searchParams.get("error");
                 ))}
               </datalist>
             </form>
-
+          <section aria-labelledby="semesters" class="semesters">
+            <h2 id="semesters">Semesters</h2>
             <div class="terms">
               {view.shown.map((term) => {
                 const here = view.planned.filter((c) => c.term === term);
@@ -169,27 +199,40 @@ const error = Astro.url.searchParams.get("error");
               })}
             </div>
           </section>
-
-          <section aria-labelledby="requirements" class="requirements">
-            <h2 id="requirements">Degree requirements</h2>
-            <ul class="reqs">
-              {view.results.map((r) => (
-                <Requirement result={r} titles={view.titles} />
-              ))}
-            </ul>
-            {degree.notes && (
-              <details class="notes">
-                <summary>What this planner doesn't check</summary>
-                <ul>
-                  {degree.notes.split("\n").map((n) => (
-                    <li>{n}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </section>
         </div>
       </>
     )
   }
 </Layout>
+
+<script>
+  // Progressive enhancement; every link and form works without it.
+  const key = "plan-scroll";
+  // After a form round-trip, land where the student was, not at the top.
+  try {
+    const saved = sessionStorage.getItem(key);
+    if (saved !== null) {
+      sessionStorage.removeItem(key);
+      window.scrollTo(0, Number(saved));
+    }
+  } catch {}
+  document.addEventListener("submit", () => {
+    try {
+      sessionStorage.setItem(key, String(window.scrollY));
+    } catch {}
+  });
+
+  // Picking a suggested course fills the add form in place instead of navigating.
+  const form = document.querySelector<HTMLFormElement>("#add");
+  const input = form?.querySelector<HTMLInputElement>('input[name="code"]');
+  document.addEventListener("click", (event) => {
+    const link = (event.target as Element).closest<HTMLAnchorElement>("a[data-add]");
+    if (!link || !form || !input) return;
+    event.preventDefault();
+    input.value = link.dataset.add ?? "";
+    input.focus({ preventScroll: true });
+    form.classList.remove("flash");
+    void form.offsetWidth;
+    form.classList.add("flash");
+  });
+</script>

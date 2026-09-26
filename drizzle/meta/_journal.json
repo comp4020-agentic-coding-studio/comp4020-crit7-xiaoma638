@@ -22,6 +22,13 @@
       "when": 1790383083589,
       "tag": "0002_drop_guestbook",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1790385126453,
+      "tag": "0003_plans_start_in_rules_year",
+      "breakpoints": true
     }
   ]
 }

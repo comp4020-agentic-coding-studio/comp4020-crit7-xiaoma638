@@ -18,8 +18,7 @@ export function progressText(r: Result): string {
 }
 
 export function percent(r: Result): number {
-  if (r.status === "choose" || r.status === "manual" || r.required === 0) return 0;
-  return Math.min(100, Math.round((r.done / r.required) * 100));
+  if (r.status === "choose" || r.status === "manual" || r.required === 0) return 0;  return Math.min(100, Math.round((r.done / r.required) * 100));
 }
 
 export const statusLabel: Record<Result["status"], string> = {
@@ -27,4 +26,5 @@ export const statusLabel: Record<Result["status"], string> = {
   unmet: "Not yet",
   choose: "Choose",
   manual: "Check",
+  within: "Limit",
 };
