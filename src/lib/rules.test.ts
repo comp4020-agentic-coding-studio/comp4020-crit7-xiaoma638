@@ -213,6 +213,25 @@ describe("repeated courses", () => {
   });
 });
 
+describe("what each course counts toward, under a unit wrapper", () => {
+  it("leaves out a top-level 'N units from the blocks below' wrapper", () => {
+    const tree: RuleNode[] = [
+      {
+        id: "core",
+        kind: "group",
+        label: "At least 12 units from the following",
+        minUnits: 12,
+        children: [
+          { id: "comp", kind: "courses", label: "Compulsory courses", courses: [{ code: "COMP1600", times: 1 }] },
+          { id: "pick", kind: "courses", label: "One of", courses: [{ code: "MATH1005", times: 1 }], minUnits: 6 },
+        ],
+      },
+    ];
+    const courses = plan("COMP1600");
+    expect(audit(tree, courses).countedBy.get(courses[0].key)).toEqual(["Compulsory courses"]);
+  });
+});
+
 describe("what each course counts toward", () => {
   const tree: RuleNode[] = [
     {

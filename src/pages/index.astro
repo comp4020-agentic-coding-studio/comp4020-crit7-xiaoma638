@@ -14,6 +14,7 @@ import {
   searchCourses,
   termsFor,
 } from "../lib/db";
+import { category, shortPath } from "../lib/format";
 import { audit, type RuleNode } from "../lib/rules";
 import { COURSE_CODE } from "../lib/seed";
 import { currentPlan } from "../lib/session";
@@ -51,10 +52,10 @@ function build(plan: Plan, degree: Degree) {
   const listedIn = new Map<string, string>();
   const walk = (nodes: RuleNode[], path: string[]) => {
     for (const n of nodes) {
-      const here = [...path, n.label];
+      const wrapper = path.length === 0 && n.kind === "group" && n.minUnits !== undefined;
+      const here = wrapper ? path : [...path, n.label];
       if (n.kind === "courses") {
-        const where = here.length > 1 ? `${here[0]} › ${here[here.length - 1]}` : here[0];
-        for (const c of n.courses) if (!listedIn.has(c.code)) listedIn.set(c.code, where);
+        for (const c of n.courses) if (!listedIn.has(c.code)) listedIn.set(c.code, shortPath(here));
       }
       if (n.kind === "group") walk(n.children, here);
       if (n.kind === "choice") walk(n.options, here);
@@ -72,35 +73,39 @@ function build(plan: Plan, degree: Degree) {
     : [];
 
   // upper limits aren't goals: respecting one achieves nothing, breaking one is a problem
-  const isLimit = (r: (typeof results)[number]) => r.kind === "constraint" && r.bound === "max";
-  const top = results.filter((r) => r.status !== "manual" && !isLimit(r));
-  const met = top.filter((r) => r.status === "met").length;
-  const broken = results.filter((r) => isLimit(r) && r.status === "unmet").length;
+  const completion = results.filter((r) => category(r) === "completion");
+  const groups = {
+    missing: completion.filter((r) => r.status !== "met"),
+    met: completion.filter((r) => r.status === "met"),
+    limits: results.filter((r) => category(r) === "limit"),
+    manual: results.filter((r) => category(r) === "manual"),
+  };
+  const met = groups.met.length;
+  const broken = groups.limits.filter((r) => r.status === "unmet").length;
   const units = planned.filter((c) => !duplicate.has(String(c.id))).reduce((n, c) => n + c.units, 0);
 
   const askedTerm = Astro.url.searchParams.get("term");
   const nextTerm = (askedTerm && terms.includes(askedTerm) ? askedTerm : undefined) ?? shown.find((t) => planned.filter((c) => c.term === t).reduce((n, c) => n + c.units, 0) < 24) ?? shown[0];
   const prefill = Astro.url.searchParams.get("add")?.toUpperCase() ?? "";
   return {
-    results,
+    groups,
     terms,
     shown,
     planned,
     duplicate,
     countsToward: (id: number) => {
       const path = countedBy.get(String(id));
-      if (!path) return undefined;
-      return path.length > 1 ? `${path[0]} › ${path[path.length - 1]}` : path[0];
+      return path && shortPath(path);
     },
     titles,
     catalogue,
     query,
     matches,
     met,
-    total: top.length,
+    total: completion.length,
     broken,
     units,
-    complete: results.every((r) => r.status === "met" || r.status === "manual" || r.status === "within"),
+    complete: groups.missing.length === 0 && broken === 0,
     nextTerm,
     prefill: COURSE_CODE.test(prefill) ? prefill : "",
   };
@@ -128,24 +133,42 @@ const rulesYear = degrees[0]?.year;
       </div>
     ) : (
       <>
-        <div class="plan-head">
+        <header class="plan-head">
           <DegreePicker degrees={degrees} current={degree.code} />
           <h1>{degree.name}</h1>
-          <p class="muted">
-            {degree.code} · semesters from {plan.startYear} · rules from{" "}
+          <p class="muted meta">
+            {degree.code} · {degree.year} rules from{" "}
             <a href={degree.sourceUrl} rel="external">
-              ANU Programs and Courses {degree.year}
+              ANU Programs and Courses
             </a>
             {" "}· switching degree keeps your courses
           </p>
-          <p role="status">
-            <a href="#requirements" class={`summary ${view.complete ? "summary-done" : ""}`}>
-              {view.complete
-                ? `All checkable requirements met — ${view.units} units planned`
-                : `${view.met} of ${view.total} requirements met · ${view.units}/${degree.totalUnits} units planned${view.broken ? ` · ${view.broken} limit exceeded` : ""}`}
+          <p class="summary" role="status">
+            <a href="#audit" class={`stat ${view.complete ? "stat-met" : "stat-missing"}`}>
+              <strong>
+                {view.met} of {view.total}
+              </strong>{" "}
+              requirements met
             </a>
+            <span class="visually-hidden">, </span>
+            <span class="stat">
+              <strong>
+                {view.units}/{degree.totalUnits}
+              </strong>{" "}
+              units
+            </span>
+            <span class="visually-hidden">, </span>
+            <a href="#audit" class={`stat ${view.broken ? "stat-over" : ""}`}>
+              {view.broken ? `${view.broken} limit exceeded` : "limits OK"}
+            </a>
+            {view.groups.manual.length > 0 && <span class="visually-hidden">, </span>}
+            {view.groups.manual.length > 0 && (
+              <a href="#audit" class="stat">
+                {view.groups.manual.length} to check yourself
+              </a>
+            )}
           </p>
-        </div>
+        </header>
 
         {error && (
           <p class="error" role="alert">
@@ -153,142 +176,180 @@ const rulesYear = degrees[0]?.year;
           </p>
         )}
 
-        <div class="plan-grid">
-          <section aria-labelledby="requirements" class="requirements">
-            <h2 id="requirements">Degree requirements</h2>
-            <ul class="reqs">
-              {view.results.map((r) => (
-                <Requirement result={r} titles={view.titles} />
-              ))}
-            </ul>
-            {degree.notes && (
-              <details class="notes">
-                <summary>What this planner doesn't check</summary>
-                <ul>
-                  {degree.notes.split("\n").map((n) => (
-                    <li>{n}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </section>
-          <section class="add" id="add" aria-labelledby="add-heading">
-            <h2 id="add-heading" class="visually-hidden">Add a course</h2>
-            <form method="post" action="/api/plan/courses" class="add-form">
-              <label class="course-field">
-                Course
-                <input
-                  name="code"
-                  required
-                  placeholder="Code or name, e.g. COMP2100 or algorithms"
-                  value={view.prefill || view.query}
-                  autocomplete="off"
-                  aria-describedby="add-hint"
-                  aria-controls="suggest"
-                  autofocus={view.prefill !== "" || undefined}
-                />
-              </label>
-              <label>
-                Semester
-                <select name="term">
-                  {view.terms.map((t) => (
-                    <option selected={t === view.nextTerm}>{t}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Units
-                <input name="units" inputmode="numeric" size="3" placeholder="auto" title="Leave blank to use the course's published units" />
-              </label>
-              <button>Add</button>
-            </form>
-            <p id="add-hint" class="hint">Type a code to add it directly, or part of a name to search.</p>
-            <ul id="suggest" class="suggest" hidden></ul>
-            {view.query && (
-              <div class="matches" role="region" aria-label="Search results">
-                <p>
-                  {view.matches.length} courses match “{view.query}” — pick one, then Add:
-                </p>
-                <ul class="suggest">
-                  {view.matches.map((c) => (
-                    <li>
-                      <a href={`/?add=${c.code}#add`} data-add={c.code}>
-                        <strong>{c.code}</strong> {c.title}
-                      </a>
-                      <span class="muted">
-                        {c.units}u{c.listed ? ` · ${c.listed}` : ""}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+        <div class="planner">
+          <div class="plan-main">
+            <section class="add" id="add" aria-labelledby="add-heading">
+              <h2 id="add-heading">Add a course</h2>
+              <form method="post" action="/api/plan/courses" class="add-form">
+                <label class="course-field">
+                  Course
+                  <input
+                    name="code"
+                    required
+                    placeholder="Code or name, e.g. COMP2100 or algorithms"
+                    value={view.prefill || view.query}
+                    autocomplete="off"
+                    aria-describedby="checks"
+                    aria-controls="suggest"
+                    autofocus={view.prefill !== "" || undefined}
+                  />
+                </label>
+                <label>
+                  Semester
+                  <select name="term">
+                    {view.terms.map((t) => (
+                      <option selected={t === view.nextTerm}>{t}</option>
+                    ))}
+                  </select>
+                </label>
+                <label class="units-field">
+                  Units
+                  <input name="units" inputmode="numeric" placeholder="auto" title="Leave blank to use the course's published units" />
+                </label>
+                <button>Add</button>
+              </form>
+              <ul id="suggest" class="suggest" hidden />
+              {view.query && (
+                <div class="matches" role="region" aria-label="Search results">
+                  <p>
+                    {view.matches.length} courses match “{view.query}” — pick one, then Add:
+                  </p>
+                  <ul class="suggest">
+                    {view.matches.map((c) => (
+                      <li>
+                        <a href={`/?add=${c.code}#add`} data-add={c.code}>
+                          <strong>{c.code}</strong> {c.title}
+                        </a>
+                        <span class="muted">
+                          {c.units}u{c.listed ? ` · ${c.listed}` : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <p class="checks" id="checks">
+                <span class="tag">Not checked</span> semester offerings, prerequisites and timetable clashes. Confirm them on
+                Programs and Courses and the ANU timetable before you enrol.
+              </p>
+              <script
+                type="application/json"
+                id="catalogue"
+                set:html={JSON.stringify(view.catalogue.map((c) => [c.code, c.title, c.units, c.listed ?? ""])).replace(/</g, "\\u003c")}
+              />
+            </section>
+
+            <section aria-labelledby="semesters" class="semesters">
+              <h2 id="semesters">Semester plan</h2>
+              <div class="terms">
+                {view.shown.map((term) => {
+                  const here = view.planned.filter((c) => c.term === term);
+                  const load = here.filter((c) => !view.duplicate.has(String(c.id))).reduce((n, c) => n + c.units, 0);
+                  return (
+                    <section class="term" aria-label={term}>
+                      <h3>
+                        <span>{term}</span>
+                        <span class="term-load">{load} units</span>
+                      </h3>
+                      {here.length === 0 ? (
+                        <p class="empty">Nothing planned</p>
+                      ) : (
+                        <ul class="courses">
+                          {here.map((c) => {
+                            const dup = view.duplicate.has(String(c.id));
+                            const counts = view.countsToward(c.id);
+                            return (
+                              <li class="course" data-course={c.courseCode} data-duplicate={dup ? "" : undefined}>
+                                <div class="course-main">
+                                  <div class="course-head">
+                                    <strong>{c.courseCode}</strong>
+                                    <span class="units">{c.units}u</span>
+                                  </div>
+                                  {view.titles.get(c.courseCode) && <div class="course-title">{view.titles.get(c.courseCode)}</div>}
+                                  {dup ? (
+                                    <div class="course-warning">Already planned earlier — doesn't count again</div>
+                                  ) : counts ? (
+                                    <div class="counts" data-counts>
+                                      Counts toward {counts}
+                                    </div>
+                                  ) : (
+                                    <div class="counts counts-none" data-counts>
+                                      Not counted toward any requirement
+                                    </div>
+                                  )}
+                                </div>
+                                <div class="course-actions">
+                                  <form method="post" action="/api/plan/courses/move" class="move">
+                                    <input type="hidden" name="id" value={c.id} />
+                                    <label>
+                                      <span class="visually-hidden">Move {c.courseCode} to</span>
+                                      <select name="term">
+                                        {view.terms.map((t) => (
+                                          <option selected={t === term}>{t}</option>
+                                        ))}
+                                      </select>
+                                    </label>
+                                    <button class="secondary">Move</button>
+                                  </form>
+                                  <form method="post" action="/api/plan/courses/delete">
+                                    <input type="hidden" name="id" value={c.id} />
+                                    <button class="remove" aria-label={`Remove ${c.courseCode} from ${term}`}>
+                                      Remove
+                                    </button>
+                                  </form>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </section>
+                  );
+                })}
               </div>
-            )}
-            <script
-              type="application/json"
-              id="catalogue"
-              set:html={JSON.stringify(view.catalogue.map((c) => [c.code, c.title, c.units, c.listed ?? ""])).replace(/</g, "\\u003c")}
-            />
-          </section>
-          <section aria-labelledby="semesters" class="semesters">
-            <h2 id="semesters">Semesters</h2>
-            <div class="terms">
-              {view.shown.map((term) => {
-                const here = view.planned.filter((c) => c.term === term);
-                const load = here.reduce((n, c) => n + c.units, 0);
-                return (
-                  <section class="term" aria-label={term}>
-                    <h3>
-                      {term} <span class="muted">{load} units</span>
-                    </h3>
-                    {here.length === 0 ? (
-                      <p class="muted empty">No courses yet</p>
-                    ) : (
-                      <ul class="courses">
-                        {here.map((c) => (
-                          <li data-course={c.courseCode} data-duplicate={view.duplicate.has(String(c.id)) ? "" : undefined}>
-                            <span>
-                              <strong>{c.courseCode}</strong>
-                              {view.titles.get(c.courseCode) && <span class="course-title">{view.titles.get(c.courseCode)}</span>}
-                              {view.duplicate.has(String(c.id)) ? (
-                                <span class="course-warning">Already planned earlier — doesn't count again</span>
-                              ) : view.countsToward(c.id) ? (
-                                <span class="counts" data-counts>
-                                  Counts toward {view.countsToward(c.id)}
-                                </span>
-                              ) : (
-                                <span class="counts counts-none" data-counts>
-                                  Not counted toward any requirement
-                                </span>
-                              )}
-                            </span>
-                            <span class="muted">{c.units}u</span>
-                            <form method="post" action="/api/plan/courses/move" class="move">
-                              <input type="hidden" name="id" value={c.id} />
-                              <label>
-                                <span class="visually-hidden">Move {c.courseCode} to</span>
-                                <select name="term">
-                                  {view.terms.map((t) => (
-                                    <option selected={t === term}>{t}</option>
-                                  ))}
-                                </select>
-                              </label>
-                              <button>Move</button>
-                            </form>
-                            <form method="post" action="/api/plan/courses/delete">
-                              <input type="hidden" name="id" value={c.id} />
-                              <button class="remove" aria-label={`Remove ${c.courseCode} from ${term}`}>
-                                ×
-                              </button>
-                            </form>
-                          </li>
+            </section>
+          </div>
+
+          <aside class="audit" aria-labelledby="audit-heading">
+            <details id="audit" open>
+              <summary>
+                <h2 id="audit-heading">Degree audit</h2>
+                <span class="muted">
+                  {view.met}/{view.total} met
+                </span>
+              </summary>
+              {[
+                { key: "missing", title: "Missing", list: view.groups.missing, open: true },
+                { key: "met", title: "Met", list: view.groups.met, open: false },
+                { key: "limits", title: "Limits", list: view.groups.limits, open: view.broken > 0 },
+                { key: "manual", title: "Check yourself", list: view.groups.manual, open: false },
+              ].map(
+                (g) =>
+                  g.list.length > 0 && (
+                    <details class={`audit-group audit-${g.key}`} open={g.open}>
+                      <summary>
+                        {g.title} <span class="count">{g.list.length}</span>
+                      </summary>
+                      <ul class="reqs">
+                        {g.list.map((r) => (
+                          <Requirement result={r} titles={view.titles} />
                         ))}
                       </ul>
-                    )}
-                  </section>
-                );
-              })}
-            </div>
-          </section>
+                    </details>
+                  ),
+              )}
+              {degree.notes && (
+                <details class="audit-group notes">
+                  <summary>What this planner doesn't check</summary>
+                  <ul>
+                    {degree.notes.split("\n").map((n) => (
+                      <li>{n}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </details>
+          </aside>
         </div>
       </>
     )
@@ -312,6 +373,13 @@ const rulesYear = degrees[0]?.year;
     } catch {}
   });
 
+  // The audit starts collapsed on narrow screens; the summary links open it.
+  const auditPanel = document.querySelector<HTMLDetailsElement>("#audit");
+  if (auditPanel && window.matchMedia("(max-width: 60rem)").matches && location.hash !== "#audit") auditPanel.open = false;
+  for (const link of document.querySelectorAll('a[href="#audit"]')) {
+    link.addEventListener("click", () => auditPanel && (auditPanel.open = true));
+  }
+
   // Picking another semester moves the course straight away.
   for (const move of document.querySelectorAll<HTMLFormElement>("form.move")) {
     move.querySelector("select")?.addEventListener("change", () => move.requestSubmit());
@@ -327,6 +395,9 @@ const rulesYear = degrees[0]?.year;
     event.preventDefault();
     input.value = link.dataset.add ?? "";
     input.focus({ preventScroll: true });
+    // on a phone the add panel isn't pinned, so bring it into view
+    const box = form.getBoundingClientRect();
+    if (box.top < 0 || box.bottom > window.innerHeight) form.scrollIntoView({ behavior: "smooth", block: "start" });
     form.classList.remove("flash");
     void form.offsetWidth;
     form.classList.add("flash");

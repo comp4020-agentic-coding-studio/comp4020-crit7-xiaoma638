@@ -51,7 +51,7 @@ describe("a degree plan", () => {
   it("opens on the chosen degree with nothing met yet", async () => {
     const doc = await page("/", cookie);
     expect(doc.querySelector("h1")?.textContent).toContain("Bachelor of Advanced Computing (Honours)");
-    expect(requirement(doc, "AACOM/foundations/programming").classList.contains("req-unmet")).toBe(true);
+    expect(requirement(doc, "AACOM/foundations/programming").classList.contains("req-missing")).toBe(true);
     // an upper limit with no courses planned is respected, not achieved
     expect(requirement(doc, "AACOM/max-1000").classList.contains("req-met")).toBe(false);
     expect(doc.querySelector(".summary")?.textContent).toMatch(/^0 of \d+ requirements met/);
@@ -161,7 +161,7 @@ describe("a degree plan", () => {
       await post("/api/plan/courses/delete", { id: li.getAttribute("value") as string }, cookie);
     }
     doc = await page("/", cookie);
-    expect(requirement(doc, "AACOM/foundations/structured").classList.contains("req-unmet")).toBe(true);
+    expect(requirement(doc, "AACOM/foundations/structured").classList.contains("req-missing")).toBe(true);
   });
 
   it("adds a course found by its name", async () => {

@@ -1,5 +1,5 @@
 ---
-import { percent, progressText, statusLabel } from "../lib/format";
+import { percent, progressText, tone, toneLabel } from "../lib/format";
 import type { Result } from "../lib/rules";
 
 interface Props {
@@ -7,19 +7,21 @@ interface Props {
   titles: Map<string, string>;
 }
 const { result: r, titles } = Astro.props;
-const shownMissing = r.missing.slice(0, 8);
+const t = tone(r);
+const shownMissing = r.missing.slice(0, 6);
 const shownChildren = r.kind === "choice" ? (r.children[0]?.children ?? []) : r.children;
+const isPickList = r.kind === "courses" && r.measure === "units";
 ---
 
-<li class={`req req-${r.status}`} data-requirement={r.id}>
+<li class={`req req-${t}`} data-requirement={r.id}>
   <div class="req-head">
-    <span class="badge">{statusLabel[r.status]}</span>
+    <span class={`badge badge-${t}`}>{toneLabel[t]}</span>
     <span class="req-label">{r.label}</span>
-    <span class="req-progress">{progressText(r)}</span>
   </div>
+  <div class="req-progress">{progressText(r)}</div>
   {
     r.status !== "choose" && r.status !== "manual" && r.required > 0 && (
-      <div class={`bar ${r.bound === "max" ? "bar-max" : ""}`} aria-hidden="true">
+      <div class="bar" aria-hidden="true">
         <span style={`width: ${percent(r)}%`} />
       </div>
     )
@@ -39,29 +41,30 @@ const shownChildren = r.kind === "choice" ? (r.children[0]?.children ?? []) : r.
             ))}
           </select>
         </label>
-        <button>Save</button>
+        <button class="secondary">Save</button>
       </form>
     )
   }
   {r.note && <p class="note">{r.note}</p>}
   {
     shownMissing.length > 0 && (
-      <p class="missing">
-        {r.kind === "courses" && r.bound === "min" && r.measure === "units" ? "Choose from: " : "Missing: "}
-        {shownMissing.map((entry, i) => {
-          const [code, times] = entry.split(" ");
-          return (
-            <>
-              {i > 0 && " · "}
-              <a href={`/?add=${code}#add`} data-add={code} title={code}>
-                {titles.get(code) ?? code}
-              </a>
-              {times && ` ${times}`}
-            </>
-          );
-        })}
-        {r.missing.length > shownMissing.length && ` and ${r.missing.length - shownMissing.length} more`}
-      </p>
+      <div class="missing">
+        <span class="missing-label">{isPickList ? "Choose from" : "Still needed"}</span>
+        <ul>
+          {shownMissing.map((entry) => {
+            const [code, times] = entry.split(" ");
+            return (
+              <li>
+                <a href={`/?add=${code}#add`} data-add={code} title={`${code} — add to plan`}>
+                  {titles.get(code) ?? code}
+                </a>
+                {times && <span class="muted"> {times}</span>}
+              </li>
+            );
+          })}
+        </ul>
+        {r.missing.length > shownMissing.length && <span class="muted">and {r.missing.length - shownMissing.length} more</span>}
+      </div>
     )
   }
   {

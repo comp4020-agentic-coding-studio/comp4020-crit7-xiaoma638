@@ -343,7 +343,7 @@ const isCheck = (n: RuleNode) => ["constraint", "total", "electives", "manual"].
 export interface Audit {
   results: Result[];
   duplicates: string[];
-  // planned course key -> labels from the top-level requirement down to the list that claimed it
+  // planned course key -> labels down to the list that claimed it (top-level unit wrappers skipped)
   countedBy: Map<string, string[]>;
 }
 
@@ -359,7 +359,9 @@ export function audit(tree: RuleNode[], plan: PlannedCourse[], choices: Record<s
   for (const c of plan) if (!duplicates.has(c.key)) unclaimed.set(c.code, [...(unclaimed.get(c.code) ?? []), c.key]);
   const countedBy = new Map<string, string[]>();
   const walk = (r: Result, path: string[]) => {
-    const here = [...path, r.label];
+    // a top-level "N units from the blocks below" wrapper says nothing about where a course went
+    const wrapper = path.length === 0 && r.kind === "group" && r.measure === "units";
+    const here = wrapper ? path : [...path, r.label];
     if (CLAIMS.includes(r.kind)) {
       for (const code of r.counted) {
         const key = unclaimed.get(code)?.shift();
