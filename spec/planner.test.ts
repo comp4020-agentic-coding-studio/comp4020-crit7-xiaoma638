@@ -183,6 +183,15 @@ describe("a degree plan", () => {
     expect(coursesIn(doc, "2027 S2")).not.toContain("COMP2100");
   });
 
+  it("offers only first and second semesters", async () => {
+    const doc = await page("/", cookie);
+    const terms = [...doc.querySelectorAll('#add select[name="term"] option')].map((o) => o.textContent);
+    expect(terms.length).toBeGreaterThan(0);
+    expect(terms.every((t) => /^\d{4} S[12]$/.test(t ?? ""))).toBe(true);
+    const res = await post("/api/plan/courses", { code: "COMP1110", term: "2027 Summer" }, cookie);
+    expect(res.headers.get("location")).toContain("error=");
+  });
+
   it("rejects something that isn't a course code and adds nothing", async () => {
     const res = await post("/api/plan/courses", { code: "<b>zzqx</b>", term: "2027 S1" }, cookie);
     expect(res.headers.get("location")).toContain("error=");

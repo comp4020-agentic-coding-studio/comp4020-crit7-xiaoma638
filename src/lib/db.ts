@@ -133,9 +133,10 @@ export function loadTree(degreeCode: string): RuleNode[] {
   return (byParent.get(null) ?? []).map(build);
 }
 
-export const SESSIONS = ["Summer", "S1", "Winter", "S2"] as const;
+export const SESSIONS = ["S1", "S2"] as const;
 
 // Every term a plan can use: the degree's normal span plus one spare year.
+// Summer and Winter sessions are left out to keep the plan to the two main semesters.
 export function termsFor(plan: Plan, degree: Degree): string[] {
   const terms: string[] = [];
   for (let y = plan.startYear; y <= plan.startYear + degree.durationYears; y++) {
