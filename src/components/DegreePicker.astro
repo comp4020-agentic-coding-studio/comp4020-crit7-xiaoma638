@@ -7,8 +7,8 @@ interface Props {
 }
 const { degrees, current } = Astro.props;
 const groups = [
-  { label: "Undergraduate", list: degrees.filter((d) => /^[A-Z]/.test(d.code)) },
-  { label: "Postgraduate", list: degrees.filter((d) => /^\d/.test(d.code)) },
+  { label: "Undergraduate", list: degrees.filter((d) => d.level === "undergraduate") },
+  { label: "Postgraduate", list: degrees.filter((d) => d.level === "postgraduate") },
 ].filter((g) => g.list.length > 0);
 ---
 

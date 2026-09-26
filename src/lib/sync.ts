@@ -63,6 +63,7 @@ export function syncCatalogue(db: BetterSQLite3Database, catalogue: Catalogue) {
     for (const d of catalogue.degrees) {
       const values = {
         name: d.name,
+        level: d.level,
         year: d.year,
         totalUnits: d.totalUnits,
         durationYears: d.durationYears,

@@ -29,6 +29,13 @@
       "when": 1790385126453,
       "tag": "0003_plans_start_in_rules_year",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1790386377275,
+      "tag": "0004_degree_level",
+      "breakpoints": true
     }
   ]
 }

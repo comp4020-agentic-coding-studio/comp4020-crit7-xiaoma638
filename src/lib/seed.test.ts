@@ -63,6 +63,10 @@ describe("seed data", () => {
         });
       });
 
+      it("declares undergraduate or postgraduate", () => {
+        expect(["undergraduate", "postgraduate"]).toContain(degree.level);
+      });
+
       it("has a total-units check", () => {
         expect(degree.tree.some((n) => n.kind === "total")).toBe(true);
       });

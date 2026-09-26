@@ -30,7 +30,10 @@ interface SeedFile {
   requirements: SeedNode[];
 }
 
+export type Level = "undergraduate" | "postgraduate";
+
 export interface DegreeFile extends SeedFile {
+  level: Level;
   year: number;
   totalUnits: number;
   durationYears: number;
@@ -43,6 +46,7 @@ export interface BundleFile extends SeedFile {
 export interface Degree {
   code: string;
   name: string;
+  level: Level;
   year: number;
   totalUnits: number;
   durationYears: number;
@@ -110,6 +114,7 @@ export function expand(degreeFiles: DegreeFile[], bundleFiles: BundleFile[]): Ca
     return {
       code: d.code,
       name: d.name,
+      level: d.level,
       year: d.year,
       totalUnits: d.totalUnits,
       durationYears: d.durationYears,

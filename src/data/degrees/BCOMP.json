@@ -1,6 +1,7 @@
 {
   "code": "BCOMP",
   "name": "Bachelor of Computing",
+  "level": "undergraduate",
   "year": 2027,
   "totalUnits": 144,
   "durationYears": 3,

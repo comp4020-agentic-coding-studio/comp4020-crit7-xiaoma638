@@ -12,6 +12,9 @@ import { index, int, primaryKey, sqliteTable, text, unique } from "drizzle-orm/s
 export const degrees = sqliteTable("degrees", {
   code: text().primaryKey(),
   name: text().notNull(),
+  level: text({ enum: ["undergraduate", "postgraduate"] })
+    .notNull()
+    .default("undergraduate"),
   year: int().notNull(),
   totalUnits: int("total_units").notNull(),
   durationYears: int("duration_years").notNull(),

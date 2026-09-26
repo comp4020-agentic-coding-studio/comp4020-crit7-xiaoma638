@@ -126,6 +126,17 @@ describe("every degree on offer", () => {
   });
 });
 
+describe("the degree list", () => {
+  it("groups degrees by level, with MMLCV under postgraduate", async () => {
+    const doc = await page("/");
+    const group = (label: string) =>
+      [...(doc.querySelector(`optgroup[label="${label}"]`)?.querySelectorAll("option") ?? [])].map((o) => o.getAttribute("value"));
+    expect(group("Postgraduate")).toContain("MMLCV");
+    expect(group("Undergraduate")).not.toContain("MMLCV");
+    expect(group("Undergraduate")).toContain("BCOMP");
+  });
+});
+
 describe("without a plan", () => {
   it("offers the degree choice on the same page as the planner", async () => {
     const doc = await page("/");

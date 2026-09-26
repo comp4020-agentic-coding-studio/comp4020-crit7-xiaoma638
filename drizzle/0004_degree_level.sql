@@ -1,0 +1,1 @@
+ALTER TABLE `degrees` ADD `level` text DEFAULT 'undergraduate' NOT NULL;
