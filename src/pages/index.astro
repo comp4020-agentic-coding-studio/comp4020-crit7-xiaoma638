@@ -16,7 +16,7 @@ import {
   termsFor,
 } from "../lib/db";
 import { category, shortPath } from "../lib/format";
-import { courseFits, describeFit } from "../lib/fit";
+import { courseFits, describeFit, nextSteps } from "../lib/fit";
 import { audit } from "../lib/rules";
 import { currentPlan } from "../lib/session";
 
@@ -73,6 +73,7 @@ function build(plan: Plan, degree: Degree) {
     manual: audited.filter((r) => category(r) === "manual"),
   };
   const met = groups.met.length;
+  const steps = nextSteps(audited);
   const broken = groups.limits.filter((r) => r.status === "unmet").length;
   const units = planned.filter((c) => !duplicate.has(String(c.id))).reduce((n, c) => n + c.units, 0);
 
@@ -80,6 +81,7 @@ function build(plan: Plan, degree: Degree) {
   const nextTerm = (askedTerm && terms.includes(askedTerm) ? askedTerm : undefined) ?? shown.find((t) => planned.filter((c) => c.term === t).reduce((n, c) => n + c.units, 0) < 24) ?? shown[0];
   return {
     groups,
+    steps,
     terms,
     shown,
     planned,
@@ -167,7 +169,6 @@ const rulesYear = degrees[0]?.year;
         )}
 
         <div class="planner">
-          <div class="plan-main">
             <section class="add" id="add" aria-labelledby="add-heading">
               <h2 id="add-heading">Add a course</h2>
               <form method="get" action="/#add" class="search" role="search">
@@ -250,6 +251,33 @@ const rulesYear = degrees[0]?.year;
               />
             </section>
 
+            <section class="next" aria-labelledby="next-heading">
+              <h2 id="next-heading">Next steps</h2>
+              {view.steps.length === 0 ? (
+                <p class="all-done">Every requirement the planner can check is met. Review the manual checks in the full audit.</p>
+              ) : (
+                <ol class="steps">
+                  {view.steps.map((step) => (
+                    <li>
+                      <span class="step-text">{step.text}</span>
+                      {step.codes.length > 0 && (
+                        <span class="chips">
+                          {step.codes.map((code) => (
+                            <a href={`/?q=${code}#add`} data-add={code} title={code}>
+                              {view.titles.get(code) ?? code}
+                            </a>
+                          ))}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              )}
+              <a href="#audit" class="view-audit" data-open-audit>
+                View full degree audit
+              </a>
+            </section>
+
             <section aria-labelledby="semesters" class="semesters">
               <h2 id="semesters">Semester plan</h2>
               <div class="terms">
@@ -319,12 +347,11 @@ const rulesYear = degrees[0]?.year;
                 })}
               </div>
             </section>
-          </div>
 
           <aside class="audit" aria-labelledby="audit-heading">
-            <details id="audit" open>
+            <details id="audit">
               <summary>
-                <h2 id="audit-heading">Degree audit</h2>
+                <h2 id="audit-heading">Full degree audit</h2>
                 <span class="muted">
                   {view.met}/{view.total} met
                 </span>
@@ -384,9 +411,9 @@ const rulesYear = degrees[0]?.year;
     } catch {}
   });
 
-  // The audit starts collapsed on narrow screens; the summary links open it.
+  // The full audit starts collapsed; links to it open it.
   const auditPanel = document.querySelector<HTMLDetailsElement>("#audit");
-  if (auditPanel && window.matchMedia("(max-width: 60rem)").matches && location.hash !== "#audit") auditPanel.open = false;
+  if (auditPanel && location.hash === "#audit") auditPanel.open = true;
   for (const link of document.querySelectorAll('a[href="#audit"]')) {
     link.addEventListener("click", () => auditPanel && (auditPanel.open = true));
   }

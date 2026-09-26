@@ -50,14 +50,15 @@ describe("next steps", () => {
   let n = 0;
   const plan = (...codes: string[]): PlannedCourse[] => codes.map((code) => ({ key: String(n++), code, units: 6 }));
 
-  it("starts with the earliest open choices and missing courses, at most three", () => {
+  it("starts with the earliest open requirements, at most three", () => {
     const steps = nextSteps(evaluate(tree, plan()));
     expect(steps.map((s) => s.text)).toEqual([
       "Choose one: COMP1100 or COMP1130",
-      "Add COMP1600",
-      "Add COMP2100",
+      "Still needed from Compulsory courses",
+      "Pick one: A computing major",
     ]);
     expect(steps[0].codes).toEqual(["COMP1100", "COMP1130"]);
+    expect(steps[1].codes).toEqual(["COMP1600", "COMP2100"]);
   });
 
   it("moves on as requirements are met", () => {

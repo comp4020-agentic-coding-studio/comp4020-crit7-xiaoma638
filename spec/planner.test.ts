@@ -246,6 +246,18 @@ describe("every degree on offer", () => {
   });
 });
 
+describe("next steps", () => {
+  it("leads with at most three concrete steps and keeps the full audit closed", async () => {
+    const doc = await page("/", await startPlan("AACOM"));
+    const steps = [...doc.querySelectorAll(".next .steps > li")];
+    expect(steps.length).toBeGreaterThan(0);
+    expect(steps.length).toBeLessThanOrEqual(3);
+    expect(steps[0].textContent).toContain("COMP1100 or COMP1130");
+    expect(steps[0].querySelector('a[data-add="COMP1100"]')).toBeTruthy();
+    expect(doc.querySelector("#audit")?.hasAttribute("open")).toBe(false);
+  });
+});
+
 describe("courses from an unchosen major", () => {
   it("say they could count, not that they do, until the major is chosen", async () => {
     const cookie = await startPlan("BCOMP");

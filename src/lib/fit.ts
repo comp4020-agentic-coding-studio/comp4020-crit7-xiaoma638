@@ -58,7 +58,7 @@ export function nextSteps(results: Result[], limit = 3): Step[] {
       }
       case "courses":
         if (r.measure === "courses") {
-          for (const m of r.missing) steps.push({ text: `Add ${m}`, codes: [m.split(" ")[0]] });
+          steps.push({ text: `Still needed from ${r.label}`, codes: r.missing.map((m) => m.split(" ")[0]) });
         } else if (r.missing.length && r.missing.length <= 3) {
           steps.push({ text: `Choose one: ${r.label}`, codes: r.missing });
         } else {

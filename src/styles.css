@@ -246,27 +246,36 @@ button.remove:hover {
   color: var(--over);
 }
 
-/* planner layout: the semester plan leads, the audit sits beside it */
+/* planner layout: the semester plan leads; next steps and the audit sit beside it */
 .planner {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "add" "next" "terms" "audit";
 }
 
-.plan-main {
-  display: grid;
-  gap: 1.25rem;
-  align-content: start;
+.add {
+  grid-area: add;
+}
+
+.next {
+  grid-area: next;
+}
+
+.semesters {
+  grid-area: terms;
+}
+
+.audit {
+  grid-area: audit;
 }
 
 @media (min-width: 64rem) {
   .planner {
-    grid-template-columns: minmax(0, 1fr) 23rem;
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "add next" "terms audit";
     align-items: start;
-  }
-
-  .planner:has(#audit:not([open])) {
-    grid-template-columns: minmax(0, 1fr) 13rem;
   }
 
   .add {
