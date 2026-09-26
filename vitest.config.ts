@@ -2,7 +2,20 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["spec/**/*.test.ts", "scripts/**/*.test.ts"],
-    globalSetup: ["./spec/global-setup.ts"],
+    projects: [
+      {
+        test: {
+          name: "unit",
+          include: ["src/**/*.test.ts", "scripts/**/*.test.ts"],
+        },
+      },
+      {
+        test: {
+          name: "spec",
+          include: ["spec/**/*.test.ts"],
+          globalSetup: ["./spec/global-setup.ts"],
+        },
+      },
+    ],
   },
 });
