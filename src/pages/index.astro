@@ -18,6 +18,7 @@ import {
 import { category, shortPath } from "../lib/format";
 import { courseFits, describeFit, nextSteps } from "../lib/fit";
 import { audit } from "../lib/rules";
+import { type Flash, readFlash } from "../lib/flash";
 import { currentPlan } from "../lib/session";
 
 const SESSION_ORDER = ["Summer", "S1", "Winter", "S2"];
@@ -105,6 +106,29 @@ function build(plan: Plan, degree: Degree) {
 }
 const view = plan && degree ? build(plan, degree) : undefined;
 const error = Astro.url.searchParams.get("error");
+const flash = readFlash(Astro.url.searchParams);
+
+// the toast's message, a warning if the change made a repeat, and how to undo it
+function toastFor(f: Flash, v: NonNullable<typeof view>) {
+  switch (f.done) {
+    case "added": {
+      const others = v.planned.filter((c) => c.courseCode === f.code && c.id !== f.id);
+      const warning = v.duplicate.has(String(f.id))
+        ? `${f.code} is already planned in ${others.map((c) => c.term).join(", ")} — this one won't count again.`
+        : others.some((c) => v.duplicate.has(String(c.id)))
+          ? `${f.code} is also planned later — that sitting won't count now.`
+          : undefined;
+      return { message: `${f.code} added to ${f.term}`, warning, undo: { action: "/api/plan/courses/delete", fields: { id: String(f.id) } } };
+    }
+    case "moved":
+      return { message: `${f.code} moved to ${f.term}`, undo: { action: "/api/plan/courses/move", fields: { id: String(f.id), term: f.from } } };
+    case "removed":
+      return { message: `${f.code} removed from ${f.term}`, undo: { action: "/api/plan/courses", fields: { code: f.code, term: f.term, units: String(f.units) } } };
+    case "undone":
+      return { message: "Undone" };
+  }
+}
+const toast = flash && view ? toastFor(flash, view) : undefined;
 const degrees = listDegrees();
 const rulesYear = degrees[0]?.year;
 ---
@@ -164,9 +188,28 @@ const rulesYear = degrees[0]?.year;
         </header>
 
         {error && (
-          <p class="error" role="alert">
-            {error}
-          </p>
+          <div class="toast toast-error" role="alert" data-toast>
+            <span class="toast-text">{error}</span>
+            <button type="button" class="toast-close" aria-label="Dismiss">×</button>
+          </div>
+        )}
+        {toast && (
+          <div class={`toast ${"warning" in toast && toast.warning ? "toast-warning" : ""}`} role="status" data-toast>
+            <span class="toast-text">
+              {toast.message}
+              {"warning" in toast && toast.warning && <span class="toast-warning-text">{toast.warning}</span>}
+            </span>
+            {"undo" in toast && toast.undo && (
+              <form method="post" action={toast.undo.action}>
+                {Object.entries(toast.undo.fields).map(([name, value]) => (
+                  <input type="hidden" name={name} value={value} />
+                ))}
+                <input type="hidden" name="undo" value="1" />
+                <button class="toast-undo">Undo</button>
+              </form>
+            )}
+            <button type="button" class="toast-close" aria-label="Dismiss">×</button>
+          </div>
         )}
 
         <div class="planner">
@@ -416,6 +459,16 @@ const rulesYear = degrees[0]?.year;
       sessionStorage.setItem(key, String(window.scrollY));
     } catch {}
   });
+
+  // Toasts: drop the flash parameters so a reload doesn't repeat them, fade
+  // after a while unless they carry a warning, and close on demand.
+  if (location.search.includes("done=") || location.search.includes("error=")) {
+    history.replaceState(null, "", location.pathname + location.hash);
+  }
+  for (const toast of document.querySelectorAll<HTMLElement>("[data-toast]")) {
+    toast.querySelector(".toast-close")?.addEventListener("click", () => toast.remove());
+    if (!toast.classList.contains("toast-warning") && !toast.classList.contains("toast-error")) setTimeout(() => toast.remove(), 8000);
+  }
 
   // The full audit starts collapsed; links to it open it.
   const auditPanel = document.querySelector<HTMLDetailsElement>("#audit");

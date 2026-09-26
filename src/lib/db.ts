@@ -170,8 +170,12 @@ export function listPlanCourses(planId: string): PlanCourse[] {
   return db.select().from(planCourses).where(eq(planCourses.planId, planId)).orderBy(asc(planCourses.id)).all();
 }
 
-export function addPlanCourse(planId: string, courseCode: string, term: string, units: number) {
-  db.insert(planCourses).values({ planId, courseCode, term, units }).onConflictDoNothing().run();
+export function addPlanCourse(planId: string, courseCode: string, term: string, units: number): number | undefined {
+  return db.insert(planCourses).values({ planId, courseCode, term, units }).onConflictDoNothing().returning({ id: planCourses.id }).get()?.id;
+}
+
+export function getPlanCourse(planId: string, id: number): PlanCourse | undefined {
+  return db.select().from(planCourses).where(and(eq(planCourses.planId, planId), eq(planCourses.id, id))).get();
 }
 
 // False when that semester already holds the same course.

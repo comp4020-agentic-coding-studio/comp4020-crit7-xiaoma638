@@ -246,6 +246,58 @@ describe("every degree on offer", () => {
   });
 });
 
+describe("feedback and undo", () => {
+  const undoOf = (doc: Document) => {
+    const form = doc.querySelector("[data-toast] form");
+    const fields = Object.fromEntries([...(form?.querySelectorAll("input") ?? [])].map((i) => [i.name, i.value]));
+    return { action: form?.getAttribute("action") as string, fields };
+  };
+
+  it("confirms an add and can undo it", async () => {
+    const cookie = await startPlan("AACOM");
+    const res = await post("/api/plan/courses", { code: "COMP2300", term: "2027 S1" }, cookie);
+    const doc = await page(res.headers.get("location") as string, cookie);
+    expect(doc.querySelector("[data-toast]")?.textContent).toContain("COMP2300 added to 2027 S1");
+    const undo = undoOf(doc);
+    const back = await post(undo.action, undo.fields, cookie);
+    expect(back.headers.get("location")).toContain("done=undone");
+    expect(coursesIn(await page("/", cookie), "2027 S1")).not.toContain("COMP2300");
+  });
+
+  it("confirms a move and can undo it", async () => {
+    const cookie = await startPlan("AACOM");
+    await post("/api/plan/courses", { code: "COMP2300", term: "2027 S1" }, cookie);
+    const id = (await page("/", cookie)).querySelector('[data-course="COMP2300"] input[name="id"]')?.getAttribute("value") as string;
+    const res = await post("/api/plan/courses/move", { id, term: "2028 S2" }, cookie);
+    const doc = await page(res.headers.get("location") as string, cookie);
+    expect(doc.querySelector("[data-toast]")?.textContent).toContain("COMP2300 moved to 2028 S2");
+    const undo = undoOf(doc);
+    await post(undo.action, undo.fields, cookie);
+    expect(coursesIn(await page("/", cookie), "2027 S1")).toContain("COMP2300");
+  });
+
+  it("confirms a removal and can undo it", async () => {
+    const cookie = await startPlan("AACOM");
+    await post("/api/plan/courses", { code: "COMP2300", term: "2027 S1" }, cookie);
+    const id = (await page("/", cookie)).querySelector('[data-course="COMP2300"] input[name="id"]')?.getAttribute("value") as string;
+    const res = await post("/api/plan/courses/delete", { id }, cookie);
+    const doc = await page(res.headers.get("location") as string, cookie);
+    expect(doc.querySelector("[data-toast]")?.textContent).toContain("COMP2300 removed from 2027 S1");
+    const undo = undoOf(doc);
+    await post(undo.action, undo.fields, cookie);
+    expect(coursesIn(await page("/", cookie), "2027 S1")).toContain("COMP2300");
+  });
+
+  it("warns when an add repeats a course that already counts", async () => {
+    const cookie = await startPlan("AACOM");
+    await post("/api/plan/courses", { code: "COMP2300", term: "2027 S1" }, cookie);
+    const res = await post("/api/plan/courses", { code: "COMP2300", term: "2028 S1" }, cookie);
+    const toast = (await page(res.headers.get("location") as string, cookie)).querySelector("[data-toast]");
+    expect(toast?.classList.contains("toast-warning")).toBe(true);
+    expect(toast?.textContent).toContain("already planned in 2027 S1");
+  });
+});
+
 describe("semester cards", () => {
   it("show load against a full-time 24 units, an add link, and how each course counts", async () => {
     const cookie = await startPlan("AACOM");

@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { addPlanCourse, courseInfo, getDegree, listPlanCourses, termsFor } from "../../../lib/db";
+import { flashUrl } from "../../../lib/flash";
 import { COURSE_CODE } from "../../../lib/seed";
 import { currentPlan } from "../../../lib/session";
 
@@ -29,6 +30,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const existing = listPlanCourses(plan.id).filter((c) => c.courseCode === code);
   if (existing.some((c) => c.term === term)) return redirect(fail(`${code} is already in ${term}.`), 303);
 
-  addPlanCourse(plan.id, code, term, units);
-  return redirect("/", 303);
+  const id = addPlanCourse(plan.id, code, term, units);
+  if (!id) return redirect(fail(`${code} is already in ${term}.`), 303);
+  if (form.get("undo")) return redirect(flashUrl({ done: "undone" }), 303);
+  return redirect(flashUrl({ done: "added", code, term, id }), 303);
 };
