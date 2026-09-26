@@ -131,30 +131,31 @@ button {
 }
 
 /* degree picker */
-.degree-form {
-  display: grid;
-  gap: 0.75rem;
-  justify-items: start;
-}
-
-fieldset {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--paper);
-  display: grid;
-  gap: 0.25rem;
-}
-
-.degree-option {
+.degree-picker {
   display: flex;
-  gap: 0.6rem;
-  align-items: baseline;
-  padding: 0.35rem 0;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  margin-block: 1rem;
 }
 
-.degree-option > span {
-  display: grid;
+.degree-picker select {
+  flex: 1 1 18rem;
+  min-width: 0;
+  max-width: 36rem;
+}
+
+.plan-head .degree-picker {
+  margin-block: 0 0.5rem;
+}
+
+.js-hidden {
+  display: none;
+}
+
+.start {
+  max-width: 44rem;
+  margin: 0 auto;
 }
 
 /* plan */
@@ -415,8 +416,4 @@ fieldset {
   from {
     box-shadow: 0 0 0 3px var(--accent);
   }
-}
-
-.degree-form select {
-  max-width: 100%;
 }

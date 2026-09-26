@@ -7,5 +7,5 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   if (!plan) return redirect("/", 303);
   const id = Number((await request.formData()).get("id"));
   if (Number.isInteger(id)) removePlanCourse(plan.id, id);
-  return redirect("/plan", 303);
+  return redirect("/", 303);
 };

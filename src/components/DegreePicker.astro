@@ -1,0 +1,39 @@
+---
+import type { Degree } from "../lib/db";
+
+interface Props {
+  degrees: Degree[];
+  current?: string;
+}
+const { degrees, current } = Astro.props;
+const groups = [
+  { label: "Undergraduate", list: degrees.filter((d) => /^[A-Z]/.test(d.code)) },
+  { label: "Postgraduate", list: degrees.filter((d) => /^\d/.test(d.code)) },
+].filter((g) => g.list.length > 0);
+---
+
+<form method="post" action="/api/plans" class="degree-picker" data-switch={current ? "" : undefined}>
+  <label for="degree">Degree</label>
+  <select id="degree" name="degree" required>
+    {!current && <option value="">— choose a degree —</option>}
+    {
+      groups.map((g) => (
+        <optgroup label={g.label}>
+          {g.list.map((d) => (
+            <option value={d.code} selected={d.code === current}>
+              {d.name} ({d.code}, {d.totalUnits} units)
+            </option>
+          ))}
+        </optgroup>
+      ))
+    }
+  </select>
+  <button>{current ? "Switch" : "Start planning"}</button>
+</form>
+
+<script>
+  // With JS, picking another degree switches straight away; the button stays for everyone else.
+  const form = document.querySelector<HTMLFormElement>("form.degree-picker[data-switch]");
+  form?.querySelector("select")?.addEventListener("change", () => form.requestSubmit());
+  form?.querySelector("button")?.classList.add("js-hidden");
+</script>

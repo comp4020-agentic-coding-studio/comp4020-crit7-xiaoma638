@@ -8,8 +8,7 @@ interface Props {
 const { title, wide = false } = Astro.props;
 const here = Astro.url.pathname;
 const links = [
-  { href: "/plan", label: "My plan" },
-  { href: "/", label: "Degrees" },
+  { href: "/", label: "Planner" },
   { href: "/readme/", label: "About" },
 ];
 ---
@@ -23,9 +22,9 @@ const links = [
   </head>
   <body>
     <header class="site">
-      <a class="brand" href="/plan">Degree planner</a>
+      <a class="brand" href="/">Degree planner</a>
       <nav aria-label="site">
-        {links.map((l) => <a href={l.href} aria-current={here === l.href || (l.href !== "/" && here.startsWith(l.href)) ? "page" : undefined}>{l.label}</a>)}
+        {links.map((l) => <a href={l.href} aria-current={here === l.href ? "page" : undefined}>{l.label}</a>)}
       </nav>
     </header>
     <main class:list={{ wide }}>

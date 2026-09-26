@@ -3,7 +3,7 @@ import { addPlanCourse, courseInfo, getDegree, termsFor } from "../../../lib/db"
 import { COURSE_CODE } from "../../../lib/seed";
 import { currentPlan } from "../../../lib/session";
 
-const back = (error?: string) => (error ? `/plan?error=${encodeURIComponent(error)}#add` : "/plan");
+const back = (error?: string) => (error ? `/?error=${encodeURIComponent(error)}#add` : "/");
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const plan = currentPlan(cookies);

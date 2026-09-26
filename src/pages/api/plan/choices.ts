@@ -7,5 +7,5 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   if (!plan) return redirect("/", 303);
   const form = await request.formData();
   const ok = setChoice(plan, String(form.get("choice") ?? ""), String(form.get("option") ?? ""));
-  return redirect(ok ? "/plan" : `/plan?error=${encodeURIComponent("That option isn't part of this degree.")}`, 303);
+  return redirect(ok ? "/" : `/?error=${encodeURIComponent("That option isn't part of this degree.")}`, 303);
 };

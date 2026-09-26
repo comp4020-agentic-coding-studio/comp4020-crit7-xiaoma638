@@ -53,7 +53,7 @@ const shownChildren = r.kind === "choice" ? (r.children[0]?.children ?? []) : r.
           return (
             <>
               {i > 0 && " · "}
-              <a href={`/plan?add=${code}#add`} data-add={code} title={code}>
+              <a href={`/?add=${code}#add`} data-add={code} title={code}>
                 {titles.get(code) ?? code}
               </a>
               {times && ` ${times}`}
