@@ -212,3 +212,25 @@ describe("repeated courses", () => {
     expect(out.results[0]).toMatchObject({ done: 6, status: "unmet" });
   });
 });
+
+describe("what each course counts toward", () => {
+  const tree: RuleNode[] = [
+    {
+      id: "found",
+      kind: "group",
+      label: "Foundations",
+      children: [{ id: "prog", kind: "courses", label: "COMP1100 or COMP1130", courses: [{ code: "COMP1100", times: 1 }, { code: "COMP1130", times: 1 }], minUnits: 6 }],
+    },
+    { id: "electives", kind: "electives", label: "Electives", minUnits: 6 },
+    { id: "max", kind: "constraint", label: "1000-level", scope: "plan", levelMax: 1000, maxUnits: 60 },
+  ];
+
+  it("names the path to the list that claimed each course, and nothing for the rest", () => {
+    const courses = plan("COMP1100", "ARTH1001", "COMP1130", "COMP1100");
+    const { countedBy } = audit(tree, courses);
+    expect(countedBy.get(courses[0].key)).toEqual(["Foundations", "COMP1100 or COMP1130"]);
+    expect(countedBy.get(courses[1].key)).toEqual(["Electives"]);
+    expect(countedBy.has(courses[2].key)).toBe(false);
+    expect(countedBy.has(courses[3].key)).toBe(false);
+  });
+});

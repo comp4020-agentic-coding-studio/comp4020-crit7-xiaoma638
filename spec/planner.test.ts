@@ -72,6 +72,13 @@ describe("a degree plan", () => {
     expect(requirement(doc, "AACOM/foundations/programming").classList.contains("req-met")).toBe(true);
   });
 
+  it("says which requirement each planned course counts toward", async () => {
+    const doc = await page("/", cookie);
+    const counts = doc.querySelector('section[aria-label="2027 S1"] [data-course="COMP1100"] [data-counts]');
+    expect(counts?.textContent).toContain("Foundations");
+    expect(counts?.textContent).toContain("COMP1100 or COMP1130");
+  });
+
   it("shows unit progress toward a requirement", async () => {
     await post("/api/plan/courses", { code: "INFS2024", term: "2027 S2" }, cookie);
     const doc = await page("/", cookie);

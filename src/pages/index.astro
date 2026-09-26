@@ -30,7 +30,7 @@ const degree = plan && getDegree(plan.degreeCode);
 function build(plan: Plan, degree: Degree) {
   const tree = loadTree(degree.code);
   const planned = listPlanCourses(plan.id).sort((a, b) => byTerm(a.term, b.term) || a.id - b.id);
-  const { results, duplicates } = audit(
+  const { results, duplicates, countedBy } = audit(
     tree,
     planned.map((c) => ({ key: String(c.id), code: c.courseCode, units: c.units })),
     getChoices(plan.id),
@@ -73,6 +73,11 @@ function build(plan: Plan, degree: Degree) {
     shown,
     planned,
     duplicate,
+    countsToward: (id: number) => {
+      const path = countedBy.get(String(id));
+      if (!path) return undefined;
+      return path.length > 1 ? `${path[0]} › ${path[path.length - 1]}` : path[0];
+    },
     titles,
     info,
     met,
@@ -204,8 +209,16 @@ const rulesYear = degrees[0]?.year;
                             <span>
                               <strong>{c.courseCode}</strong>
                               {view.titles.get(c.courseCode) && <span class="course-title">{view.titles.get(c.courseCode)}</span>}
-                              {view.duplicate.has(String(c.id)) && (
+                              {view.duplicate.has(String(c.id)) ? (
                                 <span class="course-warning">Already planned earlier — doesn't count again</span>
+                              ) : view.countsToward(c.id) ? (
+                                <span class="counts" data-counts>
+                                  Counts toward {view.countsToward(c.id)}
+                                </span>
+                              ) : (
+                                <span class="counts counts-none" data-counts>
+                                  Not counted toward any requirement
+                                </span>
                               )}
                             </span>
                             <span class="muted">{c.units}u</span>

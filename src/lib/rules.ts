@@ -343,12 +343,33 @@ const isCheck = (n: RuleNode) => ["constraint", "total", "electives", "manual"].
 export interface Audit {
   results: Result[];
   duplicates: string[];
+  // planned course key -> labels from the top-level requirement down to the list that claimed it
+  countedBy: Map<string, string[]>;
 }
+
+const CLAIMS: Kind[] = ["courses", "pool", "electives"];
 
 // `plan` must be in the order courses are taken, so the first sitting counts.
 export function audit(tree: RuleNode[], plan: PlannedCourse[], choices: Record<string, string> = {}): Audit {
   const evaluator = new Evaluator(tree, plan, choices);
-  return { results: evaluator.run(tree), duplicates: evaluator.duplicates };
+  const results = evaluator.run(tree);
+  const duplicates = new Set(evaluator.duplicates);
+
+  const unclaimed = new Map<string, string[]>();
+  for (const c of plan) if (!duplicates.has(c.key)) unclaimed.set(c.code, [...(unclaimed.get(c.code) ?? []), c.key]);
+  const countedBy = new Map<string, string[]>();
+  const walk = (r: Result, path: string[]) => {
+    const here = [...path, r.label];
+    if (CLAIMS.includes(r.kind)) {
+      for (const code of r.counted) {
+        const key = unclaimed.get(code)?.shift();
+        if (key) countedBy.set(key, here);
+      }
+    }
+    r.children.forEach((child) => walk(child, here));
+  };
+  results.forEach((r) => walk(r, []));
+  return { results, duplicates: evaluator.duplicates, countedBy };
 }
 
 export function evaluate(tree: RuleNode[], plan: PlannedCourse[], choices: Record<string, string> = {}): Result[] {
