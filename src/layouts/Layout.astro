@@ -7,10 +7,7 @@ interface Props {
 }
 const { title, wide = false } = Astro.props;
 const here = Astro.url.pathname;
-const links = [
-  { href: "/", label: "Planner" },
-  { href: "/readme/", label: "About" },
-];
+const links = [{ href: "/readme/", label: "About" }];
 ---
 
 <!doctype html>

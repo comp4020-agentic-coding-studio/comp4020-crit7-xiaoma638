@@ -151,40 +151,53 @@ const rulesYear = degrees[0]?.year;
     ) : (
       <>
         <header class="plan-head">
-          <DegreePicker degrees={degrees} current={degree.code} />
-          <h1>{degree.name}</h1>
-          <p class="muted meta">
-            {degree.code} · {degree.year} rules from{" "}
-            <a href={degree.sourceUrl} rel="external">
-              ANU Programs and Courses
-            </a>
-            {" "}· switching degree keeps your courses
-          </p>
-          <p class="summary" role="status">
-            <a href="#audit" class={`stat ${view.complete ? "stat-met" : "stat-missing"}`}>
-              <strong>
-                {view.met} of {view.total}
-              </strong>{" "}
-              requirements met
-            </a>
-            <span class="visually-hidden">, </span>
-            <span class="stat">
-              <strong>
-                {view.units}/{degree.totalUnits}
-              </strong>{" "}
-              units
-            </span>
-            <span class="visually-hidden">, </span>
-            <a href="#audit" class={`stat ${view.broken ? "stat-over" : ""}`}>
-              {view.broken ? `${view.broken} limit exceeded` : "limits OK"}
-            </a>
-            {view.groups.manual.length > 0 && <span class="visually-hidden">, </span>}
-            {view.groups.manual.length > 0 && (
-              <a href="#audit" class="stat">
-                {view.groups.manual.length} to check yourself
+          <div class="plan-title">
+            <h1>
+              {degree.name} <span class="year">· {degree.year}</span>
+            </h1>
+            <p class="meta">
+              {degree.code} · rules from{" "}
+              <a href={degree.sourceUrl} rel="external">
+                ANU Programs and Courses
               </a>
-            )}
-          </p>
+            </p>
+            <DegreePicker degrees={degrees} current={degree.code} />
+          </div>
+          <div class="progress-card" data-units={view.units} data-met={view.met} data-remaining={view.total - view.met}>
+            <div class="progress-line">
+              <span>
+                <strong>{view.units}</strong> of {degree.totalUnits} units planned
+              </span>
+              <span class="progress-pct">{Math.min(100, Math.round((view.units / degree.totalUnits) * 100))}%</span>
+            </div>
+            <div
+              class="progress"
+              role="progressbar"
+              aria-label="Units planned"
+              aria-valuemin="0"
+              aria-valuemax={degree.totalUnits}
+              aria-valuenow={view.units}
+            >
+              <span style={`width: ${Math.min(100, (view.units / degree.totalUnits) * 100)}%`} />
+            </div>
+            <p class="summary" role="status">
+              <a href="#audit" class={view.complete ? "ok" : ""}>
+                {view.total - view.met === 0 ? "All requirements met" : `${view.total - view.met} of ${view.total} requirements remaining`}
+              </a>
+              <span aria-hidden="true"> · </span>
+              <a href="#audit" class={view.broken ? "bad" : ""}>
+                {view.broken ? `${view.broken} limit exceeded` : "limits OK"}
+              </a>
+              {view.groups.manual.length > 0 && (
+                <>
+                  <span aria-hidden="true"> · </span>
+                  <a href="#audit">
+                    {view.groups.manual.length} manual {view.groups.manual.length === 1 ? "check" : "checks"}
+                  </a>
+                </>
+              )}
+            </p>
+          </div>
         </header>
 
         {error && (

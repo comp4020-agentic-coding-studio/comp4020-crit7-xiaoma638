@@ -54,7 +54,8 @@ describe("a degree plan", () => {
     expect(requirement(doc, "AACOM/foundations/programming").classList.contains("req-missing")).toBe(true);
     // an upper limit with no courses planned is respected, not achieved
     expect(requirement(doc, "AACOM/max-1000").classList.contains("req-met")).toBe(false);
-    expect(doc.querySelector(".summary")?.textContent).toMatch(/^0 of \d+ requirements met/);
+    expect(doc.querySelector("[data-met]")?.getAttribute("data-met")).toBe("0");
+    expect(doc.querySelector(".summary")?.textContent).toMatch(/(\d+) of \1 requirements remaining/);
   });
 
   it("plans in the year the rules are from, whatever year is asked for", async () => {
@@ -108,7 +109,7 @@ describe("a degree plan", () => {
   });
 
   it("counts a course planned twice only once", async () => {
-    const units = (doc: Document) => Number(doc.querySelector(".summary")?.textContent?.match(/(\d+)\/192 units/)?.[1]);
+    const units = (doc: Document) => Number(doc.querySelector("[data-units]")?.getAttribute("data-units"));
     const before = units(await page("/", cookie));
     await post("/api/plan/courses", { code: "COMP1100", term: "2028 S1" }, cookie);
     const doc = await page("/", cookie);
