@@ -1,0 +1,22 @@
+{
+  "code": "CSEC-SPEC",
+  "name": "Cyber Security",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/CSEC-SPEC",
+  "notes": ["Only available to Master of Computing (Advanced) (VCOMP) students."],
+  "courses": {
+    "COMP6034": { "title": "Network Security", "units": 6 },
+    "COMP6800": { "title": "Cyber Security Foundations", "units": 6 },
+    "COMP8131": { "title": "Managing Software Quality and Process", "units": 6 },
+    "COMP8703": { "title": "Vulnerability Research and Exploit Mitigation", "units": 6 },
+    "COMP8011": { "title": "Advanced Topics in Formal Methods and Programming Languages", "units": 6 },
+    "COMP8045": { "title": "Advanced Topics in Computer Systems & Architecture", "units": 6 },
+    "COMP8712": { "title": "Compiler Construction", "units": 6 }
+  },
+  "requirements": [
+    { "id": "compulsory", "kind": "courses", "label": "Compulsory courses", "courses": ["COMP6034", "COMP6800"] },
+    { "id": "advanced-cyber", "kind": "courses", "label": "At least 6 units of advanced cyber security", "minUnits": 6, "courses": ["COMP8131", "COMP8703"] },
+    { "id": "other", "kind": "courses", "label": "Up to 6 units from the non-cyber list", "maxUnits": 6, "courses": ["COMP8011", "COMP8045", "COMP8712"] },
+    { "id": "level-8000", "kind": "constraint", "label": "At least 12 units at 8000 level", "scope": "parent", "levelMin": 8000, "levelMax": 8000, "minUnits": 12 }
+  ]
+}

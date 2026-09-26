@@ -1,0 +1,25 @@
+{
+  "code": "HCCM-SPEC",
+  "name": "Human-Centred and Creative Computing",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/HCCM-SPEC",
+  "notes": [
+    "The page says it is available to MCOMP and VCOMP students, but its Relevant Degrees list only VCOMP, and the MCOMP page names the specialisation without linking it."
+  ],
+  "courses": {
+    "COMP6390": { "title": "Human-Computer Interaction", "units": 6 },
+    "COMP8020": { "title": "Advanced Topics in Human-Centred and Creative Computing", "units": 6 },
+    "COMP8350": { "title": "Sound and Music Computing", "units": 6 },
+    "COMP8539": { "title": "Advanced Topics in Computer Vision", "units": 6 },
+    "COMP8610": { "title": "Computer Graphics", "units": 6 },
+    "COMP6528": { "title": "Computer Vision", "units": 6 },
+    "COMP6540": { "title": "Game Development", "units": 6 },
+    "COMP6720": { "title": "Art and Interaction Computing", "units": 6 }
+  },
+  "requirements": [
+    { "id": "hci", "kind": "courses", "label": "COMP6390", "courses": ["COMP6390"] },
+    { "id": "advanced", "kind": "courses", "label": "At least 12 units from the 8000-level list", "minUnits": 12, "courses": ["COMP8020", "COMP8350", "COMP8539", "COMP8610"] },
+    { "id": "foundation", "kind": "courses", "label": "Up to 6 units from the 6000-level list", "maxUnits": 6, "courses": ["COMP6528", "COMP6540", "COMP6720"] },
+    { "id": "level-8000", "kind": "constraint", "label": "At least 12 units at 8000 level", "scope": "parent", "levelMin": 8000, "levelMax": 8000, "minUnits": 12 }
+  ]
+}

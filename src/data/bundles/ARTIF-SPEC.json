@@ -1,0 +1,25 @@
+{
+  "code": "ARTIF-SPEC",
+  "name": "Artificial Intelligence",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/ARTIF-SPEC",
+  "notes": ["Only available to students in MCOMP and VCOMP."],
+  "courses": {
+    "COMP6262": { "title": "Logic", "units": 6 },
+    "COMP6320": { "title": "Artificial Intelligence", "units": 6 },
+    "COMP6242": { "title": "Deep Learning", "units": 6 },
+    "COMP6670": { "title": "Introduction to Machine Learning", "units": 6 },
+    "COMP6528": { "title": "Computer Vision", "units": 6 },
+    "COMP8490": { "title": "Document Analysis", "units": 6 },
+    "COMP8539": { "title": "Advanced Topics in Computer Vision", "units": 6 },
+    "COMP8600": { "title": "Statistical Machine Learning", "units": 6 },
+    "COMP8620": { "title": "Advanced Topics in Artificial intelligence", "units": 6 },
+    "COMP8650": { "title": "Advanced Topics in Machine Learning", "units": 6 },
+    "COMP8691": { "title": "Optimisation", "units": 6 }
+  },
+  "requirements": [
+    { "id": "advanced", "kind": "courses", "label": "At least 12 units from the 8000-level list", "minUnits": 12, "courses": ["COMP8490", "COMP8539", "COMP8600", "COMP8620", "COMP8650", "COMP8691"] },
+    { "id": "foundation", "kind": "courses", "label": "Up to 12 units from the 6000-level list", "maxUnits": 12, "courses": ["COMP6262", "COMP6320", "COMP6242", "COMP6670", "COMP6528"] },
+    { "id": "level-8000", "kind": "constraint", "label": "At least 12 units at 8000 level", "scope": "parent", "levelMin": 8000, "levelMax": 8000, "minUnits": 12 }
+  ]
+}

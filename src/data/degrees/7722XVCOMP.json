@@ -1,0 +1,49 @@
+{
+  "code": "7722XVCOMP",
+  "name": "Master of Computing (Advanced)",
+  "year": 2027,
+  "totalUnits": 96,
+  "durationYears": 2,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/program/7722XVCOMP",
+  "notes": [
+    "8000-level COMP: the formal requirements say at least 48 units, and so does the Academic Advice. The credit paragraph mentions 'the minimum 24 unit of 8000-level courses program requirement'. The formal 48 is used here.",
+    "The Academic Advice says non-COMP courses listed in the specialisations also count towards the 48 units of 8000-level courses. The plan-wide check only counts COMP.",
+    "Specialisations: the requirements list names eight (AI, Computer Systems, Cyber Security, Computational Foundations, Data Science, Human Centred and Creative Computing, Machine Learning, Software Development). The link list has no Machine Learning, and there is no 2027 Machine Learning specialisation page (MCHL-SPEC exists only up to 2026), so it is left out.",
+    "The requirements list asks for COMP6250 or COMP8260 (professional practice). The study pattern shows COMP8280 instead. The formal list is followed here.",
+    "Students who don't reach a GPA of 6 in their first 48 units are automatically transferred to the Master of Computing.",
+    "Students without an identified supervisor's approval for COMP8800 by week 1 of their final two semesters are automatically transferred to the Master of Computing. The COMP8800 project registration form, agreed with a supervisor, must be completed before the semester starts.",
+    "Up to 48 units of credit may be awarded, decided case by case. At most one credited course counts towards the specialisation. At most 6 units of credited 8000-level courses count towards the 8000-level rule. Exempted courses can't count towards the specialisation and should be replaced by COMP electives (non-COMP needs permission).",
+    "Electives must be postgraduate courses, per the degree's Academic Advice.",
+    "Software Development specialisation: pick the COMP6120 option in its 'se' choice (the replacement option is for MCOMP students only)."
+  ],
+  "courses": {
+    "COMP6250": { "title": "Professional Practice: Holistic Thinking and Communication", "units": 6 },
+    "COMP8260": { "title": "Professional Practice: Responsible Innovation and Leadership", "units": 6 },
+    "COMP6442": { "title": "Software Construction", "units": 6 },
+    "COMP6445": { "title": "Computing Research Methods", "units": 6 },
+    "COMP8800": { "title": "Advanced Computing Research Project", "units": 12 }
+  },
+  "requirements": [
+    { "id": "prof-practice", "kind": "courses", "label": "Professional practice: COMP6250 or COMP8260", "minUnits": 6, "courses": ["COMP6250", "COMP8260"] },
+    { "id": "compulsory", "kind": "courses", "label": "Compulsory courses", "courses": ["COMP6442", "COMP6445"] },
+    { "id": "research", "kind": "courses", "label": "COMP8800 in two consecutive semesters (12+12)", "courses": [{ "code": "COMP8800", "times": 2 }] },
+    {
+      "id": "spec",
+      "kind": "choice",
+      "label": "Specialisation (24 units)",
+      "options": [
+        { "bundle": "ARTIF-SPEC" },
+        { "bundle": "CMSY-SPEC" },
+        { "bundle": "CSEC-SPEC" },
+        { "bundle": "COMP-SPEC" },
+        { "bundle": "DTSC-SPEC" },
+        { "bundle": "HCCM-SPEC" },
+        { "bundle": "SOFT-SPEC" }
+      ]
+    },
+    { "id": "comp-engn", "kind": "pool", "label": "Further 6000–8000-level COMP or ENGN", "subjects": ["COMP", "ENGN"], "levelMin": 6000, "levelMax": 8000, "minUnits": 18 },
+    { "id": "electives", "kind": "electives", "label": "Electives (postgraduate)", "minUnits": 12, "levelMin": 6000 },
+    { "id": "comp-8000", "kind": "constraint", "label": "8000-level COMP courses", "scope": "plan", "subjects": ["COMP"], "levelMin": 8000, "levelMax": 8000, "minUnits": 48 },
+    { "id": "total", "kind": "total", "label": "Total units", "minUnits": 96 }
+  ]
+}

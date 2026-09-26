@@ -1,0 +1,22 @@
+{
+  "code": "DTSC-SPEC",
+  "name": "Data Science",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/DTSC-SPEC",
+  "notes": [],
+  "courses": {
+    "COMP6240": { "title": "Relational Databases", "units": 6 },
+    "COMP8410": { "title": "Data Mining", "units": 6 },
+    "COMP8490": { "title": "Document Analysis", "units": 6 },
+    "COMP6434": { "title": "Data Wrangling", "units": 6 },
+    "COMP6670": { "title": "Introduction to Machine Learning", "units": 6 },
+    "COMP8600": { "title": "Statistical Machine Learning", "units": 6 },
+    "COMP8650": { "title": "Advanced Topics in Machine Learning", "units": 6 },
+    "COMP8880": { "title": "Computational Methods for Network Science", "units": 6 }
+  },
+  "requirements": [
+    { "id": "compulsory", "kind": "courses", "label": "Compulsory courses", "courses": ["COMP6240", "COMP8410", "COMP8490"] },
+    { "id": "elective", "kind": "courses", "label": "6 units from the list", "minUnits": 6, "courses": ["COMP6434", "COMP6670", "COMP8600", "COMP8650", "COMP8880"] },
+    { "id": "level-8000", "kind": "constraint", "label": "At least 12 units at 8000 level", "scope": "parent", "levelMin": 8000, "levelMax": 8000, "minUnits": 12 }
+  ]
+}

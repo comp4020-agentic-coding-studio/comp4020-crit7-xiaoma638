@@ -1,0 +1,26 @@
+{
+  "code": "CMSY-SPEC",
+  "name": "Computer Systems",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/CMSY-SPEC",
+  "notes": [
+    "The page's Other Information calls COMP8405 'Advanced Topics in Computer Systems' a special-topics course, but the requirements list COMP8045 and there is no 2027 page for COMP8405. COMP8045 is used here."
+  ],
+  "courses": {
+    "COMP8300": { "title": "Parallel Systems", "units": 6 },
+    "COMP8045": { "title": "Advanced Topics in Computer Systems & Architecture", "units": 6 },
+    "COMP8712": { "title": "Compiler Construction", "units": 6 },
+    "COMP6300": { "title": "Computer Architecture", "units": 6 },
+    "COMP6310": { "title": "Systems, Networks and Concurrency", "units": 6 },
+    "COMP6330": { "title": "Operating Systems Implementation", "units": 6 },
+    "COMP6331": { "title": "Computer Networks", "units": 6 },
+    "COMP6361": { "title": "Principles of Programming Languages", "units": 6 },
+    "COMP6464": { "title": "High Performance Scientific Computing", "units": 6 },
+    "ENGN6213": { "title": "Digital Systems and Microprocessors", "units": 6 }
+  },
+  "requirements": [
+    { "id": "advanced", "kind": "courses", "label": "At least 12 units from the 8000-level list", "minUnits": 12, "courses": ["COMP8300", "COMP8045", "COMP8712"] },
+    { "id": "foundation", "kind": "courses", "label": "Up to 12 units from the 6000-level list", "maxUnits": 12, "courses": ["COMP6300", "COMP6310", "COMP6330", "COMP6331", "COMP6361", "COMP6464", "ENGN6213"] },
+    { "id": "level-8000", "kind": "constraint", "label": "At least 12 units at 8000 level", "scope": "parent", "levelMin": 8000, "levelMax": 8000, "minUnits": 12 }
+  ]
+}

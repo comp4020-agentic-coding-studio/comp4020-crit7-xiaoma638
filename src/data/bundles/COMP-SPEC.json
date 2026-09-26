@@ -1,0 +1,27 @@
+{
+  "code": "COMP-SPEC",
+  "name": "Computational Foundations",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/COMP-SPEC",
+  "notes": [
+    "MATH8343 needs a permission code from the course convener.",
+    "COMP8011 is a special-topics course; the topic varies by offering."
+  ],
+  "courses": {
+    "COMP6361": { "title": "Principles of Programming Languages", "units": 6 },
+    "COMP6363": { "title": "Theory of Computation", "units": 6 },
+    "COMP8011": { "title": "Advanced Topics in Formal Methods and Programming Languages", "units": 6 },
+    "COMP8460": { "title": "Advanced Algorithms", "units": 6 },
+    "MATH6114": { "title": "Number Theory and Cryptography", "units": 6 },
+    "MATH8343": { "title": "Foundations of Mathematics", "units": 6 },
+    "COMP6261": { "title": "Information Theory", "units": 6 },
+    "COMP6262": { "title": "Logic", "units": 6 },
+    "COMP6466": { "title": "Algorithms", "units": 6 },
+    "COMP8712": { "title": "Compiler Construction", "units": 6 }
+  },
+  "requirements": [
+    { "id": "core", "kind": "courses", "label": "At least 12 units from the core list", "minUnits": 12, "courses": ["COMP6361", "COMP6363", "COMP8011", "COMP8460", "MATH6114", "MATH8343"] },
+    { "id": "further", "kind": "courses", "label": "Up to 12 units from the further list", "maxUnits": 12, "courses": ["COMP6261", "COMP6262", "COMP6466", "COMP8712"] },
+    { "id": "level-8000", "kind": "constraint", "label": "At least 12 units at 8000 level", "scope": "parent", "levelMin": 8000, "levelMax": 8000, "minUnits": 12 }
+  ]
+}

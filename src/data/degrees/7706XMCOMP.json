@@ -1,0 +1,74 @@
+{
+  "code": "7706XMCOMP",
+  "name": "Master of Computing",
+  "year": 2027,
+  "totalUnits": 96,
+  "durationYears": 2,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/program/7706XMCOMP",
+  "notes": [
+    "Specialisations: the requirements list names seven (AI, Computer Systems, Computational Foundations, Data Science, Human Centred and Creative Computing, Machine Learning, Software Development). The page's link list differs: it adds Professional Computing (PCOM-SPEC), and has no links for Human Centred and Creative Computing or Machine Learning. The requirements list is followed here.",
+    "Machine Learning is left out because there is no 2027 specialisation page for it (MCHL-SPEC exists only up to 2026).",
+    "Human Centred and Creative Computing is HCCM-SPEC. It is linked from the VCOMP page, and its own page says it is open to MCOMP students.",
+    "PCOM-SPEC is not offered here because the formal requirements don't list it.",
+    "Project courses: the page says 'a maximum of 12 units' of COMP8715 (6+6) / COMP8830. The other blocks only add up to 96 with 12 project units, and both courses are listed as capstones, so 12 units are required here.",
+    "The requirements list calls COMP7710 'Structured Programming'. Its course page and the study pattern call it 'Programming Fundamentals'.",
+    "Electives must be postgraduate (6000 level or higher), per the degree's Electives advice.",
+    "Students with a Bachelor or Graduate Diploma that includes programming or maths can apply for credit or exemptions for introductory core courses. At most one credited course (6 units) counts towards the specialisation. At most 6 units of credited 8000-level courses count towards the 24-unit 8000-level COMP rule. Exempted courses can't count towards the specialisation and must be replaced by COMP electives (non-COMP needs permission).",
+    "Graduate Diploma of Computing graduates with GPA 5 or above may enter with up to 48 units of advanced standing. Students may exit with the Graduate Diploma after 48 units.",
+    "MCOMP students with a GPA above 6 may transfer to the Master of Computing (Advanced) with up to 48 units of credit.",
+    "The specialisation need not be declared until the second or third semester."
+  ],
+  "courses": {
+    "COMP6120": { "title": "Software Engineering", "units": 6 },
+    "COMP6442": { "title": "Software Construction", "units": 6 },
+    "COMP7710": { "title": "Programming Fundamentals", "units": 12 },
+    "COMP8280": { "title": "Responsible Practice, Innovation and Leadership", "units": 6 },
+    "MATH6005": { "title": "Discrete Mathematical Models", "units": 6 },
+    "COMP6260": { "title": "Foundations of Computing", "units": 6 },
+    "COMP8715": { "title": "Advanced Computing Team Project", "units": 6 },
+    "COMP8830": { "title": "Computing Internship", "units": 12 }
+  },
+  "requirements": [
+    { "id": "compulsory", "kind": "courses", "label": "Compulsory courses", "courses": ["COMP6120", "COMP6442", "COMP7710", "COMP8280"] },
+    { "id": "foundational", "kind": "courses", "label": "Foundational course: MATH6005 or COMP6260", "minUnits": 6, "courses": ["MATH6005", "COMP6260"] },
+    {
+      "id": "project",
+      "kind": "choice",
+      "label": "Project courses (12 units)",
+      "options": [
+        {
+          "id": "team",
+          "kind": "group",
+          "label": "Advanced Computing Team Project",
+          "children": [
+            { "id": "course", "kind": "courses", "label": "COMP8715 in two consecutive semesters (6+6)", "courses": [{ "code": "COMP8715", "times": 2 }] }
+          ]
+        },
+        {
+          "id": "internship",
+          "kind": "group",
+          "label": "Computing Internship",
+          "children": [{ "id": "course", "kind": "courses", "label": "COMP8830", "courses": ["COMP8830"] }]
+        }
+      ]
+    },
+    {
+      "id": "spec",
+      "kind": "choice",
+      "label": "Specialisation (24 units)",
+      "options": [
+        { "bundle": "ARTIF-SPEC" },
+        { "bundle": "CMSY-SPEC" },
+        { "bundle": "COMP-SPEC" },
+        { "bundle": "DTSC-SPEC" },
+        { "bundle": "HCCM-SPEC" },
+        { "bundle": "SOFT-SPEC" }
+      ]
+    },
+    { "id": "comp-engn", "kind": "pool", "label": "Further 6000–8000-level COMP or ENGN", "subjects": ["COMP", "ENGN"], "levelMin": 6000, "levelMax": 8000, "minUnits": 18 },
+    { "id": "electives", "kind": "electives", "label": "Electives (postgraduate)", "minUnits": 6, "levelMin": 6000 },
+    { "id": "comp-8000", "kind": "constraint", "label": "8000-level COMP courses", "scope": "plan", "subjects": ["COMP"], "levelMin": 8000, "levelMax": 8000, "minUnits": 24 },
+    { "id": "max-project", "kind": "manual", "label": "At most 12 units of project courses", "note": "COMP8715 and COMP8830 together can count for at most 12 units. The planner can't cap a list, so check this yourself." },
+    { "id": "total", "kind": "total", "label": "Total units", "minUnits": 96 }
+  ]
+}

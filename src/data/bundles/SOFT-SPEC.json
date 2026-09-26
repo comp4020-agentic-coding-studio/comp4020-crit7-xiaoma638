@@ -1,0 +1,49 @@
+{
+  "code": "SOFT-SPEC",
+  "name": "Software Development",
+  "units": 24,
+  "sourceUrl": "https://programsandcourses.anu.edu.au/2027/specialisation/SOFT-SPEC",
+  "notes": [
+    "Only available to students in MCOMP or VCOMP.",
+    "MCOMP students take COMP6120 as a compulsory course, so they must replace it here with 6 units of 6000/8000-level COMP. The 'se' choice holds both options. The replacement pool also accepts 7000-level COMP, which the page doesn't mention."
+  ],
+  "courses": {
+    "COMP6120": { "title": "Software Engineering", "units": 6 },
+    "ENGN8100": { "title": "Introduction to Systems Engineering", "units": 6 },
+    "COMP6240": { "title": "Relational Databases", "units": 6 },
+    "COMP6331": { "title": "Computer Networks", "units": 6 },
+    "COMP6390": { "title": "Human-Computer Interaction", "units": 6 },
+    "INFS8004": { "title": "Enterprise Systems and Strategy", "units": 6 },
+    "INFS8205": { "title": "Digital Strategy, Executive and Operations", "units": 6 },
+    "LAWS8445": { "title": "Information Technology Law", "units": 6 },
+    "MGMT7020": { "title": "Technology and Project Management", "units": 6 },
+    "REGN8014": { "title": "Contemporary Issues in Technology Governance", "units": 6 }
+  },
+  "requirements": [
+    {
+      "id": "se",
+      "kind": "choice",
+      "label": "COMP6120, or its replacement for MCOMP students",
+      "options": [
+        {
+          "id": "comp6120",
+          "kind": "group",
+          "label": "COMP6120 Software Engineering",
+          "children": [{ "id": "course", "kind": "courses", "label": "COMP6120", "courses": ["COMP6120"] }]
+        },
+        {
+          "id": "mcomp-replacement",
+          "kind": "group",
+          "label": "MCOMP students: 6 units of 6000/8000-level COMP instead of COMP6120",
+          "children": [
+            { "id": "pool", "kind": "pool", "label": "6 units of 6000/8000-level COMP", "subjects": ["COMP"], "levelMin": 6000, "levelMax": 8000, "minUnits": 6 }
+          ]
+        }
+      ]
+    },
+    { "id": "sys-eng", "kind": "courses", "label": "ENGN8100", "courses": ["ENGN8100"] },
+    { "id": "comp-8000", "kind": "pool", "label": "6 units of 8000-level COMP (not project courses)", "subjects": ["COMP"], "levelMin": 8000, "levelMax": 8000, "exclude": ["COMP8715", "COMP8800", "COMP8830"], "minUnits": 6 },
+    { "id": "list", "kind": "courses", "label": "Up to 12 units from the list", "maxUnits": 12, "courses": ["COMP6240", "COMP6331", "COMP6390", "INFS8004", "INFS8205", "LAWS8445", "MGMT7020", "REGN8014"] },
+    { "id": "level-8000", "kind": "constraint", "label": "At least 12 units at 8000 level", "scope": "parent", "levelMin": 8000, "levelMax": 8000, "minUnits": 12 }
+  ]
+}
