@@ -1,0 +1,75 @@
+---
+import { percent, progressText, statusLabel } from "../lib/format";
+import type { Result } from "../lib/rules";
+
+interface Props {
+  result: Result;
+  titles: Map<string, string>;
+}
+const { result: r, titles } = Astro.props;
+const shownMissing = r.missing.slice(0, 8);
+const shownChildren = r.kind === "choice" ? (r.children[0]?.children ?? []) : r.children;
+---
+
+<li class={`req req-${r.status}`} data-requirement={r.id}>
+  <div class="req-head">
+    <span class="badge">{statusLabel[r.status]}</span>
+    <span class="req-label">{r.label}</span>
+    <span class="req-progress">{progressText(r)}</span>
+  </div>
+  {
+    r.status !== "choose" && r.status !== "manual" && r.required > 0 && (
+      <div class={`bar ${r.bound === "max" ? "bar-max" : ""}`} aria-hidden="true">
+        <span style={`width: ${percent(r)}%`} />
+      </div>
+    )
+  }
+  {
+    r.options && (
+      <form method="post" action="/api/plan/choices" class="choice">
+        <input type="hidden" name="choice" value={r.id} />
+        <label>
+          <span class="visually-hidden">{r.label}</span>
+          <select name="option">
+            <option value="">— choose —</option>
+            {r.options.map((o) => (
+              <option value={o.id} selected={o.id === r.chosen}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button>Save</button>
+      </form>
+    )
+  }
+  {r.note && <p class="note">{r.note}</p>}
+  {
+    shownMissing.length > 0 && (
+      <p class="missing">
+        {r.kind === "courses" && r.bound === "min" && r.measure === "units" ? "Choose from: " : "Missing: "}
+        {shownMissing.map((code, i) => {
+          const plain = code.split(" ")[0];
+          return (
+            <>
+              {i > 0 && ", "}
+              <a href={`/plan?add=${plain}#add`} title={titles.get(plain)}>
+                {code}
+              </a>
+            </>
+          );
+        })}
+        {r.missing.length > shownMissing.length && ` and ${r.missing.length - shownMissing.length} more`}
+      </p>
+    )
+  }
+  {
+    shownChildren.length > 0 && (
+      <ul class="reqs">
+        {shownChildren.map((child) => (
+          <Astro.self result={child} titles={titles} />
+        ))}
+      </ul>
+    )
+  }
+</li>

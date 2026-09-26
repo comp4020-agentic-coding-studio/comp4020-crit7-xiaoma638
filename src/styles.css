@@ -1,40 +1,380 @@
-body {
-  margin: 0;
-  padding: 2rem;
-  font-family: system-ui, sans-serif;
-  line-height: 1.6;
-  color: #1a1a1a;
+:root {
+  --ink: #1b1d21;
+  --muted: #5d6470;
+  --line: #d9dde3;
+  --paper: #ffffff;
+  --wash: #f4f5f7;
+  --accent: #0b5fff;
+  --met: #1a7f47;
+  --met-wash: #e7f5ec;
+  --unmet: #b3561a;
+  --unmet-wash: #fdf0e6;
+  --choose: #6a3fc1;
+  --choose-wash: #f1ebfc;
+  --bad: #b3261e;
+  color-scheme: light;
 }
 
-main {
-  max-width: 40rem;
-  margin: 0 auto;
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--wash);
 }
 
 a {
-  color: #0b5fff;
+  color: var(--accent);
 }
 
-form {
+header.site {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.5rem 1.5rem;
   align-items: center;
-  margin-block: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
 }
 
-input {
-  flex: 1;
-  min-width: 12rem;
-  padding: 0.4rem 0.6rem;
+.brand {
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
+nav a[aria-current="page"] {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+main.wide {
+  max-width: 76rem;
+}
+
+h1 {
+  line-height: 1.2;
+  margin-block: 0.5rem;
+}
+
+h2 {
+  font-size: 1.15rem;
+  margin-block: 0 0.75rem;
+}
+
+h3 {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.muted {
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.lede {
+  font-size: 1.1rem;
+}
+
+.callout,
+.error {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.error {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+button,
+input,
+select {
   font: inherit;
+}
+
+input,
+select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #9aa1ab;
+  border-radius: 4px;
+  background: var(--paper);
 }
 
 button {
-  padding: 0.4rem 1rem;
-  font: inherit;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
 }
 
-#messages {
-  padding-inline-start: 1.2rem;
+/* degree picker */
+.degree-form {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+
+fieldset {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  display: grid;
+  gap: 0.25rem;
+}
+
+.degree-option {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.35rem 0;
+}
+
+.degree-option > span {
+  display: grid;
+}
+
+/* plan */
+.summary {
+  display: inline-block;
+  margin: 0.25rem 0 1rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--unmet-wash);
+  color: var(--unmet);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.summary-done {
+  background: var(--met-wash);
+  color: var(--met);
+}
+
+.plan-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 60rem) {
+  .plan-grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .requirements {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+.add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: end;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.add label {
+  display: grid;
+  font-size: 0.9rem;
+}
+
+.terms {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.term {
+  padding: 0.75rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.courses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.courses li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--wash);
+}
+
+.course-title {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.remove {
+  padding: 0 0.5rem;
+  background: none;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.requirements {
+  padding: 0.75rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.reqs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.reqs .reqs {
+  margin-top: 0.4rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--line);
+}
+
+.req {
+  padding: 0.45rem 0;
+}
+
+.req-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  align-items: baseline;
+}
+
+.req-label {
+  flex: 1;
+  font-weight: 600;
+}
+
+.req-progress {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.req-met > .req-head .badge {
+  background: var(--met-wash);
+  color: var(--met);
+}
+
+.req-unmet > .req-head .badge {
+  background: var(--unmet-wash);
+  color: var(--unmet);
+}
+
+.req-choose > .req-head .badge {
+  background: var(--choose-wash);
+  color: var(--choose);
+}
+
+.req-manual > .req-head .badge {
+  background: var(--wash);
+  color: var(--muted);
+}
+
+.bar {
+  height: 6px;
+  margin-top: 0.3rem;
+  border-radius: 3px;
+  background: var(--wash);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--unmet);
+}
+
+.req-met > .bar span {
+  background: var(--met);
+}
+
+.bar-max span {
+  background: #8a93a0;
+}
+
+.req-unmet > .bar-max span {
+  background: var(--bad);
+}
+
+.choice {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.note,
+.missing {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.notes {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
