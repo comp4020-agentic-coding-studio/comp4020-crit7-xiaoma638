@@ -417,3 +417,9 @@ button {
     box-shadow: 0 0 0 3px var(--accent);
   }
 }
+
+.course-warning {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--bad);
+}

@@ -79,12 +79,32 @@ interface Taker {
 
 class Evaluator {
   private free: PlannedCourse[];
+  private all: PlannedCourse[];
+  readonly duplicates: string[] = [];
 
+  // A course counts as many times as some rule asks for it (COMP4550 twice),
+  // otherwise once; later instances in plan order count toward nothing.
   constructor(
-    private all: PlannedCourse[],
+    tree: RuleNode[],
+    plan: PlannedCourse[],
     private choices: Record<string, string>,
   ) {
-    this.free = [...all];
+    const allowed = new Map<string, number>();
+    const walk = (n: RuleNode) => {
+      if (n.kind === "courses") for (const c of n.courses) allowed.set(c.code, Math.max(allowed.get(c.code) ?? 1, c.times));
+      if (n.kind === "group") n.children.forEach(walk);
+      if (n.kind === "choice") n.options.forEach(walk);
+    };
+    tree.forEach(walk);
+    const seen = new Map<string, number>();
+    this.all = plan.filter((c) => {
+      const n = (seen.get(c.code) ?? 0) + 1;
+      seen.set(c.code, n);
+      if (n <= (allowed.get(c.code) ?? 1)) return true;
+      this.duplicates.push(c.key);
+      return false;
+    });
+    this.free = [...this.all];
   }
 
   private take(accepts: (c: PlannedCourse) => boolean, limit: number, taken: PlannedCourse[]) {
@@ -320,6 +340,17 @@ function refreshLeaf(r: Result, taken: PlannedCourse[], minUnits: number | undef
 
 const isCheck = (n: RuleNode) => ["constraint", "total", "electives", "manual"].includes(n.kind);
 
+export interface Audit {
+  results: Result[];
+  duplicates: string[];
+}
+
+// `plan` must be in the order courses are taken, so the first sitting counts.
+export function audit(tree: RuleNode[], plan: PlannedCourse[], choices: Record<string, string> = {}): Audit {
+  const evaluator = new Evaluator(tree, plan, choices);
+  return { results: evaluator.run(tree), duplicates: evaluator.duplicates };
+}
+
 export function evaluate(tree: RuleNode[], plan: PlannedCourse[], choices: Record<string, string> = {}): Result[] {
-  return new Evaluator(plan, choices).run(tree);
+  return audit(tree, plan, choices).results;
 }

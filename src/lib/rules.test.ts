@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluate, type PlannedCourse, type Result, type RuleNode } from "./rules";
+import { audit, evaluate, type PlannedCourse, type Result, type RuleNode } from "./rules";
 
 let n = 0;
 const plan = (...codes: (string | [string, number])[]): PlannedCourse[] =>
@@ -179,5 +179,36 @@ describe("whole-plan checks", () => {
   it("totals every planned unit", () => {
     const total = evaluate(tree, plan("COMP1100", "COMP2100", ["COMP4550", 12]))[2];
     expect(total).toMatchObject({ status: "met", done: 24 });
+  });
+});
+
+describe("repeated courses", () => {
+  const tree: RuleNode[] = [
+    { id: "core", kind: "courses", label: "Core", courses: [{ code: "COMP1100", times: 1 }] },
+    { id: "cap", kind: "courses", label: "Capstone", courses: [{ code: "COMP4550", times: 2 }] },
+    { id: "electives", kind: "electives", label: "Electives", minUnits: 12 },
+    { id: "total", kind: "total", label: "Total", minUnits: 48 },
+  ];
+
+  it("counts an ordinary course once, however many times it's planned", () => {
+    const courses = plan("COMP1100", "COMP1100");
+    const out = audit(tree, courses);
+    expect(out.duplicates).toEqual([courses[1].key]);
+    expect(out.results.find((r) => r.id === "electives")?.done).toBe(0);
+    expect(out.results.find((r) => r.id === "total")?.done).toBe(6);
+  });
+
+  it("counts a take-twice course twice, and a third time not at all", () => {
+    const courses = plan(["COMP4550", 12], ["COMP4550", 12], ["COMP4550", 12]);
+    const out = audit(tree, courses);
+    expect(out.results.find((r) => r.id === "cap")?.status).toBe("met");
+    expect(out.duplicates).toEqual([courses[2].key]);
+    expect(out.results.find((r) => r.id === "total")?.done).toBe(24);
+  });
+
+  it("counts a course a pool accepts once too", () => {
+    const pool: RuleNode[] = [{ id: "p", kind: "pool", label: "COMP", subjects: ["COMP"], minUnits: 12 }];
+    const out = audit(pool, plan("COMP3600", "COMP3600"));
+    expect(out.results[0]).toMatchObject({ done: 6, status: "unmet" });
   });
 });

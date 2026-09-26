@@ -13,7 +13,7 @@ import {
   type Plan,
   termsFor,
 } from "../lib/db";
-import { evaluate, type RuleNode } from "../lib/rules";
+import { audit, type RuleNode } from "../lib/rules";
 import { COURSE_CODE } from "../lib/seed";
 import { currentPlan } from "../lib/session";
 
@@ -29,12 +29,13 @@ const degree = plan && getDegree(plan.degreeCode);
 
 function build(plan: Plan, degree: Degree) {
   const tree = loadTree(degree.code);
-  const planned = listPlanCourses(plan.id);
-  const results = evaluate(
+  const planned = listPlanCourses(plan.id).sort((a, b) => byTerm(a.term, b.term) || a.id - b.id);
+  const { results, duplicates } = audit(
     tree,
     planned.map((c) => ({ key: String(c.id), code: c.courseCode, units: c.units })),
     getChoices(plan.id),
   );
+  const duplicate = new Set(duplicates);
 
   const terms = termsFor(plan, degree);
   const regular = terms.filter((t) => {
@@ -62,7 +63,7 @@ function build(plan: Plan, degree: Degree) {
   const top = results.filter((r) => r.status !== "manual" && !isLimit(r));
   const met = top.filter((r) => r.status === "met").length;
   const broken = results.filter((r) => isLimit(r) && r.status === "unmet").length;
-  const units = planned.reduce((n, c) => n + c.units, 0);
+  const units = planned.filter((c) => !duplicate.has(String(c.id))).reduce((n, c) => n + c.units, 0);
 
   const nextTerm = shown.find((t) => planned.filter((c) => c.term === t).reduce((n, c) => n + c.units, 0) < 24) ?? shown[0];
   const prefill = Astro.url.searchParams.get("add")?.toUpperCase() ?? "";
@@ -71,6 +72,7 @@ function build(plan: Plan, degree: Degree) {
     terms,
     shown,
     planned,
+    duplicate,
     titles,
     info,
     met,
@@ -198,10 +200,13 @@ const rulesYear = degrees[0]?.year;
                     ) : (
                       <ul class="courses">
                         {here.map((c) => (
-                          <li data-course={c.courseCode}>
+                          <li data-course={c.courseCode} data-duplicate={view.duplicate.has(String(c.id)) ? "" : undefined}>
                             <span>
                               <strong>{c.courseCode}</strong>
                               {view.titles.get(c.courseCode) && <span class="course-title">{view.titles.get(c.courseCode)}</span>}
+                              {view.duplicate.has(String(c.id)) && (
+                                <span class="course-warning">Already planned earlier — doesn't count again</span>
+                              )}
                             </span>
                             <span class="muted">{c.units}u</span>
                             <form method="post" action="/api/plan/courses/delete">

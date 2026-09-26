@@ -100,6 +100,19 @@ describe("a degree plan", () => {
     expect(chosen).toBe(option);
   });
 
+  it("counts a course planned twice only once", async () => {
+    const units = (doc: Document) => Number(doc.querySelector(".summary")?.textContent?.match(/(\d+)\/192 units/)?.[1]);
+    const before = units(await page("/", cookie));
+    await post("/api/plan/courses", { code: "COMP1100", term: "2028 S1" }, cookie);
+    const doc = await page("/", cookie);
+    expect(doc.querySelector('section[aria-label="2028 S1"] [data-course="COMP1100"]')?.hasAttribute("data-duplicate")).toBe(true);
+    expect(doc.querySelector('section[aria-label="2027 S1"] [data-course="COMP1100"]')?.hasAttribute("data-duplicate")).toBe(false);
+    expect(units(doc)).toBe(before);
+
+    const id = doc.querySelector('section[aria-label="2028 S1"] [data-course="COMP1100"] input[name="id"]')?.getAttribute("value");
+    await post("/api/plan/courses/delete", { id: id as string }, cookie);
+  });
+
   it("rejects something that isn't a course code and adds nothing", async () => {
     const res = await post("/api/plan/courses", { code: "<b>hi</b>", term: "2027 S1" }, cookie);
     expect(res.headers.get("location")).toContain("error=");
