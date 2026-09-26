@@ -120,6 +120,50 @@ describe("a degree plan", () => {
     await post("/api/plan/courses/delete", { id: id as string }, cookie);
   });
 
+  it("moves a course to another semester, keeping it across a reload", async () => {
+    const before = await page("/", cookie);
+    const id = before.querySelector('section[aria-label="2027 S1"] [data-course="COMP1100"] input[name="id"]')?.getAttribute("value");
+    const res = await post("/api/plan/courses/move", { id: id as string, term: "2027 S2" }, cookie);
+    expect(res.status).toBe(303);
+
+    const after = await page("/", cookie);
+    expect(coursesIn(after, "2027 S1")).not.toContain("COMP1100");
+    expect(after.querySelector('section[aria-label="2027 S2"] [data-course="COMP1100"] input[name="id"]')?.getAttribute("value")).toBe(id);
+    expect(requirement(after, "AACOM/foundations/programming").classList.contains("req-met")).toBe(true);
+
+    await post("/api/plan/courses/move", { id: id as string, term: "2027 S1" }, cookie);
+  });
+
+  it("won't move a course into a semester that already has it", async () => {
+    await post("/api/plan/courses", { code: "COMP1100", term: "2028 S1" }, cookie);
+    const doc = await page("/", cookie);
+    const later = doc.querySelector('section[aria-label="2028 S1"] [data-course="COMP1100"] input[name="id"]')?.getAttribute("value");
+    const res = await post("/api/plan/courses/move", { id: later as string, term: "2027 S1" }, cookie);
+    expect(res.headers.get("location")).toContain("error=");
+    expect(coursesIn(await page("/", cookie), "2028 S1")).toContain("COMP1100");
+    await post("/api/plan/courses/delete", { id: later as string }, cookie);
+  });
+
+  it("recounts after a move: the earlier sitting is the one that counts", async () => {
+    await post("/api/plan/courses", { code: "COMP1110", term: "2028 S1" }, cookie);
+    await post("/api/plan/courses", { code: "COMP1110", term: "2028 S2" }, cookie);
+    const flagged = (doc: Document, term: string) =>
+      doc.querySelector(`section[aria-label="${term}"] [data-course="COMP1110"]`)?.hasAttribute("data-duplicate");
+    let doc = await page("/", cookie);
+    expect([flagged(doc, "2028 S1"), flagged(doc, "2028 S2")]).toEqual([false, true]);
+
+    const second = doc.querySelector('section[aria-label="2028 S2"] [data-course="COMP1110"] input[name="id"]')?.getAttribute("value");
+    await post("/api/plan/courses/move", { id: second as string, term: "2027 S2" }, cookie);
+    doc = await page("/", cookie);
+    expect([flagged(doc, "2027 S2"), flagged(doc, "2028 S1")]).toEqual([false, true]);
+
+    for (const li of doc.querySelectorAll('[data-course="COMP1110"] input[name="id"]')) {
+      await post("/api/plan/courses/delete", { id: li.getAttribute("value") as string }, cookie);
+    }
+    doc = await page("/", cookie);
+    expect(requirement(doc, "AACOM/foundations/structured").classList.contains("req-unmet")).toBe(true);
+  });
+
   it("rejects something that isn't a course code and adds nothing", async () => {
     const res = await post("/api/plan/courses", { code: "<b>hi</b>", term: "2027 S1" }, cookie);
     expect(res.headers.get("location")).toContain("error=");

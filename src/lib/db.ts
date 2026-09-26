@@ -157,6 +157,21 @@ export function addPlanCourse(planId: string, courseCode: string, term: string, 
   db.insert(planCourses).values({ planId, courseCode, term, units }).onConflictDoNothing().run();
 }
 
+// False when that semester already holds the same course.
+export function movePlanCourse(planId: string, id: number, term: string): boolean {
+  const mine = and(eq(planCourses.planId, planId), eq(planCourses.id, id));
+  const course = db.select().from(planCourses).where(mine).get();
+  if (!course) return true;
+  const clash = db
+    .select({ id: planCourses.id })
+    .from(planCourses)
+    .where(and(eq(planCourses.planId, planId), eq(planCourses.term, term), eq(planCourses.courseCode, course.courseCode)))
+    .get();
+  if (clash && clash.id !== id) return false;
+  db.update(planCourses).set({ term }).where(mine).run();
+  return true;
+}
+
 export function removePlanCourse(planId: string, id: number) {
   db.delete(planCourses).where(and(eq(planCourses.planId, planId), eq(planCourses.id, id))).run();
 }

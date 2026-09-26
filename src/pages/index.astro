@@ -222,6 +222,18 @@ const rulesYear = degrees[0]?.year;
                               )}
                             </span>
                             <span class="muted">{c.units}u</span>
+                            <form method="post" action="/api/plan/courses/move" class="move">
+                              <input type="hidden" name="id" value={c.id} />
+                              <label>
+                                <span class="visually-hidden">Move {c.courseCode} to</span>
+                                <select name="term">
+                                  {view.terms.map((t) => (
+                                    <option selected={t === term}>{t}</option>
+                                  ))}
+                                </select>
+                              </label>
+                              <button>Move</button>
+                            </form>
                             <form method="post" action="/api/plan/courses/delete">
                               <input type="hidden" name="id" value={c.id} />
                               <button class="remove" aria-label={`Remove ${c.courseCode} from ${term}`}>
@@ -259,6 +271,12 @@ const rulesYear = degrees[0]?.year;
       sessionStorage.setItem(key, String(window.scrollY));
     } catch {}
   });
+
+  // Picking another semester moves the course straight away.
+  for (const move of document.querySelectorAll<HTMLFormElement>("form.move")) {
+    move.querySelector("select")?.addEventListener("change", () => move.requestSubmit());
+    move.querySelector("button")?.classList.add("js-hidden");
+  }
 
   // Picking a suggested course fills the add form in place instead of navigating.
   const form = document.querySelector<HTMLFormElement>("#add");
