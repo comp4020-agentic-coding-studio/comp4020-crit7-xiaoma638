@@ -246,6 +246,25 @@ describe("every degree on offer", () => {
   });
 });
 
+describe("semester cards", () => {
+  it("show load against a full-time 24 units, an add link, and how each course counts", async () => {
+    const cookie = await startPlan("AACOM");
+    await post("/api/plan/courses", { code: "COMP2100", term: "2027 S1" }, cookie);
+    await post("/api/plan/courses", { code: "COMP1100", term: "2027 S1" }, cookie);
+    await post("/api/plan/courses", { code: "COMP1100", term: "2027 S2" }, cookie);
+    await post("/api/plan/courses", { code: "ZZZZ1234", term: "2028 S1" }, cookie);
+    const doc = await page("/", cookie);
+    const card = (term: string) => doc.querySelector(`section[aria-label="${term}"]`);
+    expect(card("2027 S1")?.querySelector(".term-load")?.textContent).toBe("12 / 24 units");
+    expect(card("2028 S2")?.querySelector("a.add-here")?.getAttribute("data-term")).toBe("2028 S2");
+    const tint = (term: string, code: string) => card(term)?.querySelector(`[data-course="${code}"]`)?.className;
+    expect(tint("2027 S1", "COMP2100")).toContain("tint-compulsory");
+    expect(tint("2027 S1", "COMP1100")).toContain("tint-list");
+    expect(tint("2027 S2", "COMP1100")).toContain("tint-attention");
+    expect(tint("2028 S1", "ZZZZ1234")).toContain("tint-elective");
+  });
+});
+
 describe("next steps", () => {
   it("leads with at most three concrete steps and keeps the full audit closed", async () => {
     const doc = await page("/", await startPlan("AACOM"));

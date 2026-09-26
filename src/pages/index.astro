@@ -33,7 +33,7 @@ const degree = plan && getDegree(plan.degreeCode);
 function build(plan: Plan, degree: Degree) {
   const tree = loadTree(degree.code);
   const planned = listPlanCourses(plan.id).sort((a, b) => byTerm(a.term, b.term) || a.id - b.id);
-  const { results: audited, duplicates, countedBy } = audit(
+  const { results: audited, duplicates, countedBy, claimedAs } = audit(
     tree,
     planned.map((c) => ({ key: String(c.id), code: c.courseCode, units: c.units })),
     getChoices(plan.id),
@@ -90,6 +90,7 @@ function build(plan: Plan, degree: Degree) {
       const path = countedBy.get(String(id));
       return path && shortPath(path);
     },
+    tint: (id: number) => (duplicate.has(String(id)) ? "attention" : (claimedAs.get(String(id)) ?? "none")),
     titles,
     catalogue,
     query,
@@ -284,39 +285,38 @@ const rulesYear = degrees[0]?.year;
                 {view.shown.map((term) => {
                   const here = view.planned.filter((c) => c.term === term);
                   const load = here.filter((c) => !view.duplicate.has(String(c.id))).reduce((n, c) => n + c.units, 0);
+                  const addHere = (
+                    <a class="add-here" href={`/?term=${encodeURIComponent(term)}#add`} data-term={term}>
+                      + Add a course
+                    </a>
+                  );
                   return (
-                    <section class="term" aria-label={term}>
+                    <section class={`term ${here.length === 0 ? "term-empty" : ""}`} aria-label={term}>
                       <h3>
                         <span>{term}</span>
-                        <span class="term-load">{load} units</span>
+                        <span class={`term-load ${load > 24 ? "term-over" : ""}`}>{load} / 24 units</span>
                       </h3>
-                      {here.length === 0 ? (
-                        <p class="empty">Nothing planned</p>
-                      ) : (
+                      {here.length > 0 && (
                         <ul class="courses">
                           {here.map((c) => {
                             const dup = view.duplicate.has(String(c.id));
                             const counts = view.countsToward(c.id);
                             return (
-                              <li class="course" data-course={c.courseCode} data-duplicate={dup ? "" : undefined}>
-                                <div class="course-main">
-                                  <div class="course-head">
-                                    <strong>{c.courseCode}</strong>
-                                    <span class="units">{c.units}u</span>
-                                  </div>
-                                  {view.titles.get(c.courseCode) && <div class="course-title">{view.titles.get(c.courseCode)}</div>}
-                                  {dup ? (
-                                    <div class="course-warning">Already planned earlier — doesn't count again</div>
-                                  ) : counts ? (
-                                    <div class="counts" data-counts>
-                                      Counts toward {counts}
-                                    </div>
-                                  ) : (
-                                    <div class="counts counts-none" data-counts>
-                                      Not counted toward any requirement
-                                    </div>
-                                  )}
+                              <li class={`course tint-${view.tint(c.id)}`} data-course={c.courseCode} data-duplicate={dup ? "" : undefined}>
+                                <div class="course-head">
+                                  <strong>{c.courseCode}</strong>
+                                  <span class="units">{c.units}u</span>
                                 </div>
+                                {view.titles.get(c.courseCode) && <div class="course-title">{view.titles.get(c.courseCode)}</div>}
+                                {dup ? (
+                                  <div class="course-note" data-counts>
+                                    Already planned earlier — doesn't count again
+                                  </div>
+                                ) : (
+                                  <div class="course-note" data-counts>
+                                    {counts ? `Counts toward ${counts}` : "Not counted toward any requirement"}
+                                  </div>
+                                )}
                                 <div class="course-actions">
                                   <form method="post" action="/api/plan/courses/move" class="move">
                                     <input type="hidden" name="id" value={c.id} />
@@ -330,18 +330,24 @@ const rulesYear = degrees[0]?.year;
                                     </label>
                                     <button class="secondary">Move</button>
                                   </form>
-                                  <form method="post" action="/api/plan/courses/delete">
-                                    <input type="hidden" name="id" value={c.id} />
-                                    <button class="remove" aria-label={`Remove ${c.courseCode} from ${term}`}>
-                                      Remove
-                                    </button>
-                                  </form>
+                                  <details class="menu">
+                                    <summary aria-label={`More actions for ${c.courseCode}`}>⋯</summary>
+                                    <div class="menu-body">
+                                      <form method="post" action="/api/plan/courses/delete">
+                                        <input type="hidden" name="id" value={c.id} />
+                                        <button class="remove" aria-label={`Remove ${c.courseCode} from ${term}`}>
+                                          Remove from plan
+                                        </button>
+                                      </form>
+                                    </div>
+                                  </details>
                                 </div>
                               </li>
                             );
                           })}
                         </ul>
                       )}
+                      {addHere}
                     </section>
                   );
                 })}

@@ -252,4 +252,11 @@ describe("what each course counts toward", () => {
     expect(countedBy.has(courses[2].key)).toBe(false);
     expect(countedBy.has(courses[3].key)).toBe(false);
   });
+
+  it("says what kind of requirement claimed each course", () => {
+    const withCore: RuleNode[] = [{ id: "core", kind: "courses", label: "Core", courses: [{ code: "COMP2100", times: 1 }] }, ...tree];
+    const courses = plan("COMP2100", "COMP1100", "ARTH1001");
+    const { claimedAs } = audit(withCore, courses);
+    expect([...courses.map((c) => claimedAs.get(c.key))]).toEqual(["compulsory", "list", "elective"]);
+  });
 });

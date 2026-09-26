@@ -345,6 +345,8 @@ export interface Audit {
   duplicates: string[];
   // planned course key -> labels down to the list that claimed it (top-level unit wrappers skipped)
   countedBy: Map<string, string[]>;
+  // planned course key -> what kind of requirement claimed it
+  claimedAs: Map<string, "compulsory" | "list" | "elective">;
 }
 
 const CLAIMS: Kind[] = ["courses", "pool", "electives"];
@@ -358,6 +360,7 @@ export function audit(tree: RuleNode[], plan: PlannedCourse[], choices: Record<s
   const unclaimed = new Map<string, string[]>();
   for (const c of plan) if (!duplicates.has(c.key)) unclaimed.set(c.code, [...(unclaimed.get(c.code) ?? []), c.key]);
   const countedBy = new Map<string, string[]>();
+  const claimedAs: Audit["claimedAs"] = new Map();
   const walk = (r: Result, path: string[]) => {
     // a top-level "N units from the blocks below" wrapper says nothing about where a course went
     const wrapper = path.length === 0 && r.kind === "group" && r.measure === "units";
@@ -365,13 +368,15 @@ export function audit(tree: RuleNode[], plan: PlannedCourse[], choices: Record<s
     if (CLAIMS.includes(r.kind)) {
       for (const code of r.counted) {
         const key = unclaimed.get(code)?.shift();
-        if (key) countedBy.set(key, here);
+        if (!key) continue;
+        countedBy.set(key, here);
+        claimedAs.set(key, r.kind === "electives" ? "elective" : r.measure === "courses" ? "compulsory" : "list");
       }
     }
     r.children.forEach((child) => walk(child, here));
   };
   results.forEach((r) => walk(r, []));
-  return { results, duplicates: evaluator.duplicates, countedBy };
+  return { results, duplicates: evaluator.duplicates, countedBy, claimedAs };
 }
 
 export function evaluate(tree: RuleNode[], plan: PlannedCourse[], choices: Record<string, string> = {}): Result[] {
