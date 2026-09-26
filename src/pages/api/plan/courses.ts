@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { addPlanCourse, courseInfo, getDegree, termsFor } from "../../../lib/db";
+import { addPlanCourse, courseInfo, getDegree, searchCourses, termsFor } from "../../../lib/db";
 import { COURSE_CODE } from "../../../lib/seed";
 import { currentPlan } from "../../../lib/session";
 
@@ -12,13 +12,18 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   if (!degree) return redirect("/", 303);
 
   const form = await request.formData();
-  const code = String(form.get("code") ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/\s+/g, "");
+  const typedCourse = String(form.get("code") ?? "").trim();
   const term = String(form.get("term") ?? "");
-  if (!COURSE_CODE.test(code)) return redirect(back(`"${code}" isn't a course code — use four letters and four digits, like COMP1100.`), 303);
   if (!termsFor(plan, degree).includes(term)) return redirect(back("Choose a semester from the list."), 303);
+
+  // a code is added as typed; anything else is a search, added only if it names one course
+  let code = typedCourse.toUpperCase().replace(/\s+/g, "");
+  if (!COURSE_CODE.test(code)) {
+    const hits = searchCourses(typedCourse);
+    if (hits.length === 0) return redirect(back(`No course code or title matches "${typedCourse}".`), 303);
+    if (hits.length > 1) return redirect(`/?q=${encodeURIComponent(typedCourse)}&term=${encodeURIComponent(term)}#add`, 303);
+    code = hits[0].code;
+  }
 
   const known = courseInfo([code]).get(code);
   const typed = String(form.get("units") ?? "").trim();

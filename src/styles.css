@@ -230,6 +230,13 @@ button {
   font-size: 0.9rem;
 }
 
+.add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: end;
+}
+
 .terms {
   display: grid;
   gap: 0.75rem;

@@ -164,8 +164,27 @@ describe("a degree plan", () => {
     expect(requirement(doc, "AACOM/foundations/structured").classList.contains("req-unmet")).toBe(true);
   });
 
+  it("adds a course found by its name", async () => {
+    await post("/api/plan/courses", { code: "games, graphs and machines", term: "2027 S2" }, cookie);
+    const doc = await page("/", cookie);
+    expect(coursesIn(doc, "2027 S2")).toContain("MATH2301");
+    const id = doc.querySelector('section[aria-label="2027 S2"] [data-course="MATH2301"] input[name="id"]')?.getAttribute("value");
+    await post("/api/plan/courses/delete", { id: id as string }, cookie);
+  });
+
+  it("lists the matches when a name fits several courses, and adds none", async () => {
+    const res = await post("/api/plan/courses", { code: "software", term: "2027 S2" }, cookie);
+    const location = res.headers.get("location") ?? "";
+    expect(location).toContain("q=software");
+    const doc = await page(location, cookie);
+    const results = doc.querySelector('[aria-label="Search results"]');
+    expect(results?.querySelector('[data-add="COMP2100"]')?.textContent).toContain("Software Construction");
+    expect(results?.textContent).toContain("6u");
+    expect(coursesIn(doc, "2027 S2")).not.toContain("COMP2100");
+  });
+
   it("rejects something that isn't a course code and adds nothing", async () => {
-    const res = await post("/api/plan/courses", { code: "<b>hi</b>", term: "2027 S1" }, cookie);
+    const res = await post("/api/plan/courses", { code: "<b>zzqx</b>", term: "2027 S1" }, cookie);
     expect(res.headers.get("location")).toContain("error=");
     expect(coursesIn(await page("/", cookie), "2027 S1")).toEqual(["COMP1100"]);
   });

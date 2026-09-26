@@ -58,6 +58,22 @@ export function courseInfo(codes: string[]): Map<string, { title: string; units:
   return new Map(rows.map((r) => [r.code, { title: r.title, units: r.units }]));
 }
 
+export type Course = typeof courses.$inferSelect;
+
+export function allCourses(): Course[] {
+  return db.select().from(courses).orderBy(asc(courses.code)).all();
+}
+
+// Every word must appear in the code or the title: "comp 26" and "software eng" both work.
+export function searchCourses(query: string): Course[] {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+  return allCourses().filter((c) => {
+    const text = `${c.code} ${c.title}`.toLowerCase();
+    return words.every((w) => text.includes(w));
+  });
+}
+
 export function loadTree(degreeCode: string): RuleNode[] {
   const rows = db
     .select()

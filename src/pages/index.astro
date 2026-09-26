@@ -3,7 +3,7 @@ import DegreePicker from "../components/DegreePicker.astro";
 import Requirement from "../components/Requirement.astro";
 import Layout from "../layouts/Layout.astro";
 import {
-  courseInfo,
+  allCourses,
   type Degree,
   getChoices,
   getDegree,
@@ -11,6 +11,7 @@ import {
   listPlanCourses,
   loadTree,
   type Plan,
+  searchCourses,
   termsFor,
 } from "../lib/db";
 import { audit, type RuleNode } from "../lib/rules";
@@ -46,17 +47,29 @@ function build(plan: Plan, degree: Degree) {
   const used = new Set(planned.map((c) => c.term));
   const shown = [...new Set([...regular, ...used])].sort(byTerm);
 
-  const listed = new Set<string>();
-  const walk = (nodes: RuleNode[]) => {
+  // where each course is named in this degree's rules, for search results
+  const listedIn = new Map<string, string>();
+  const walk = (nodes: RuleNode[], path: string[]) => {
     for (const n of nodes) {
-      if (n.kind === "courses") n.courses.forEach((c) => listed.add(c.code));
-      if (n.kind === "group") walk(n.children);
-      if (n.kind === "choice") walk(n.options);
+      const here = [...path, n.label];
+      if (n.kind === "courses") {
+        const where = here.length > 1 ? `${here[0]} › ${here[here.length - 1]}` : here[0];
+        for (const c of n.courses) if (!listedIn.has(c.code)) listedIn.set(c.code, where);
+      }
+      if (n.kind === "group") walk(n.children, here);
+      if (n.kind === "choice") walk(n.options, here);
     }
   };
-  walk(tree);
-  const info = courseInfo([...new Set([...listed, ...planned.map((c) => c.courseCode)])]);
-  const titles = new Map([...info].map(([code, i]) => [code, i.title]));
+  walk(tree, []);
+  const catalogue = allCourses().map((c) => ({ ...c, listed: listedIn.get(c.code) }));
+  const titles = new Map(catalogue.map((c) => [c.code, c.title]));
+  const query = Astro.url.searchParams.get("q")?.trim() ?? "";
+  const matches = query
+    ? searchCourses(query)
+        .map((c) => ({ ...c, listed: listedIn.get(c.code) }))
+        .sort((a, b) => Number(!a.listed) - Number(!b.listed))
+        .slice(0, 12)
+    : [];
 
   // upper limits aren't goals: respecting one achieves nothing, breaking one is a problem
   const isLimit = (r: (typeof results)[number]) => r.kind === "constraint" && r.bound === "max";
@@ -65,7 +78,8 @@ function build(plan: Plan, degree: Degree) {
   const broken = results.filter((r) => isLimit(r) && r.status === "unmet").length;
   const units = planned.filter((c) => !duplicate.has(String(c.id))).reduce((n, c) => n + c.units, 0);
 
-  const nextTerm = shown.find((t) => planned.filter((c) => c.term === t).reduce((n, c) => n + c.units, 0) < 24) ?? shown[0];
+  const askedTerm = Astro.url.searchParams.get("term");
+  const nextTerm = (askedTerm && terms.includes(askedTerm) ? askedTerm : undefined) ?? shown.find((t) => planned.filter((c) => c.term === t).reduce((n, c) => n + c.units, 0) < 24) ?? shown[0];
   const prefill = Astro.url.searchParams.get("add")?.toUpperCase() ?? "";
   return {
     results,
@@ -79,7 +93,9 @@ function build(plan: Plan, degree: Degree) {
       return path.length > 1 ? `${path[0]} › ${path[path.length - 1]}` : path[0];
     },
     titles,
-    info,
+    catalogue,
+    query,
+    matches,
     met,
     total: top.length,
     broken,
@@ -156,17 +172,19 @@ const rulesYear = degrees[0]?.year;
               </details>
             )}
           </section>
-          <form method="post" action="/api/plan/courses" class="add" id="add" aria-label="Add a course">
-              <label>
-                Course code
+          <section class="add" id="add" aria-labelledby="add-heading">
+            <h2 id="add-heading" class="visually-hidden">Add a course</h2>
+            <form method="post" action="/api/plan/courses" class="add-form">
+              <label class="course-field">
+                Course
                 <input
                   name="code"
                   required
-                  list="known-courses"
-                  placeholder="COMP1100"
-                  value={view.prefill}
+                  placeholder="Code or name, e.g. COMP2100 or algorithms"
+                  value={view.prefill || view.query}
                   autocomplete="off"
-                  pattern="[A-Za-z]{4}\s*[0-9]{4}"
+                  aria-describedby="add-hint"
+                  aria-controls="suggest"
                   autofocus={view.prefill !== "" || undefined}
                 />
               </label>
@@ -182,13 +200,35 @@ const rulesYear = degrees[0]?.year;
                 Units
                 <input name="units" inputmode="numeric" size="3" placeholder="auto" title="Leave blank to use the course's published units" />
               </label>
-              <button>Add course</button>
-              <datalist id="known-courses">
-                {[...view.info].map(([code, i]) => (
-                  <option value={code}>{i.title}</option>
-                ))}
-              </datalist>
+              <button>Add</button>
             </form>
+            <p id="add-hint" class="hint">Type a code to add it directly, or part of a name to search.</p>
+            <ul id="suggest" class="suggest" hidden></ul>
+            {view.query && (
+              <div class="matches" role="region" aria-label="Search results">
+                <p>
+                  {view.matches.length} courses match “{view.query}” — pick one, then Add:
+                </p>
+                <ul class="suggest">
+                  {view.matches.map((c) => (
+                    <li>
+                      <a href={`/?add=${c.code}#add`} data-add={c.code}>
+                        <strong>{c.code}</strong> {c.title}
+                      </a>
+                      <span class="muted">
+                        {c.units}u{c.listed ? ` · ${c.listed}` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <script
+              type="application/json"
+              id="catalogue"
+              set:html={JSON.stringify(view.catalogue.map((c) => [c.code, c.title, c.units, c.listed ?? ""])).replace(/</g, "\\u003c")}
+            />
+          </section>
           <section aria-labelledby="semesters" class="semesters">
             <h2 id="semesters">Semesters</h2>
             <div class="terms">
@@ -279,7 +319,7 @@ const rulesYear = degrees[0]?.year;
   }
 
   // Picking a suggested course fills the add form in place instead of navigating.
-  const form = document.querySelector<HTMLFormElement>("#add");
+  const form = document.querySelector<HTMLElement>("#add");
   const input = form?.querySelector<HTMLInputElement>('input[name="code"]');
   document.addEventListener("click", (event) => {
     const link = (event.target as Element).closest<HTMLAnchorElement>("a[data-add]");
@@ -290,5 +330,43 @@ const rulesYear = degrees[0]?.year;
     form.classList.remove("flash");
     void form.offsetWidth;
     form.classList.add("flash");
+  });
+
+  // Live suggestions from the course catalogue embedded in the page.
+  const suggest = document.querySelector<HTMLUListElement>("#suggest");
+  const catalogueEl = document.querySelector("#catalogue");
+  type Entry = [code: string, title: string, units: number, listed: string];
+  const catalogue: Entry[] = catalogueEl ? JSON.parse(catalogueEl.textContent ?? "[]") : [];
+  const render = () => {
+    if (!input || !suggest) return;
+    const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+    const exact = catalogue.some(([code]) => code === input.value.trim().toUpperCase());
+    const hits = words.length && !exact
+      ? catalogue
+          .filter(([code, title]) => words.every((w) => `${code} ${title}`.toLowerCase().includes(w)))
+          .sort((a, b) => Number(!a[3]) - Number(!b[3]))
+          .slice(0, 8)
+      : [];
+    suggest.replaceChildren(
+      ...hits.map(([code, title, units, listed]) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = `/?add=${code}#add`;
+        a.dataset.add = code;
+        const strong = document.createElement("strong");
+        strong.textContent = code;
+        a.append(strong, ` ${title}`);
+        const meta = document.createElement("span");
+        meta.className = "muted";
+        meta.textContent = `${units}u${listed ? ` · ${listed}` : ""}`;
+        li.append(a, meta);
+        return li;
+      }),
+    );
+    suggest.hidden = hits.length === 0;
+  };
+  input?.addEventListener("input", render);
+  document.addEventListener("click", (event) => {
+    if ((event.target as Element).closest("a[data-add]") && suggest) suggest.hidden = true;
   });
 </script>
